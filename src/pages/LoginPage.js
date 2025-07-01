@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Carousel from '../components/Carousel'; // Re-introducing Carousel
+import Carousel from '../components/Carousel';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -53,23 +53,17 @@ const LoginPage = () => {
     try {
       const loggedInUser = await login(email, password);
       if (loggedInUser) {
-        // In a real app, "Remember Me" would influence token expiry or session type
         console.log("Remember Me:", rememberMe);
         speakGreeting(loggedInUser.name);
       }
-    } catch (err) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+    } catch (err)      setError(err.message || 'Failed to login. Please check your credentials.');
     } finally {
       setIsLoggingIn(false);
     }
   };
 
-  // Styles object now primarily for form elements and specific UI components within the form column
   const styles = {
-    // pageContainer, leftColumn, rightColumn, logoText are removed as they are superseded by
-    // pageStyle, carouselColumnStyle, formColumnStyle, and mainLogoTextStyle respectively.
-
-    formContainer: { // This is used by the JSX: <div style={styles.formContainer}>
+    formContainer: {
       maxWidth: '400px',
       width: '100%',
       margin: '0 auto',
@@ -100,13 +94,12 @@ const LoginPage = () => {
       padding: '12px 15px',
       marginBottom: '20px',
       border: '1px solid #ddd',
-      borderRadius: '4px', // Slightly rounded corners for inputs
+      borderRadius: '4px',
       boxSizing: 'border-box',
       fontSize: '1em',
       fontFamily: "'Segoe UI', sans-serif",
       transition: 'border-color 0.3s ease',
     },
-    // inputFocus: { borderColor: '#007bff' }, // Would need event handlers to toggle class/style
     formOptions: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -123,21 +116,19 @@ const LoginPage = () => {
       color: '#007bff',
       textDecoration: 'none',
     },
-    // forgotPasswordLinkHover: { textDecoration: 'underline' },
     loginButton: {
       width: '100%',
       padding: '12px',
-      backgroundColor: '#007bff', // Blue button matching theme
+      backgroundColor: '#007bff',
       color: 'white',
       border: 'none',
-      borderRadius: '4px', // Slightly rounded corners for button
+      borderRadius: '4px',
       cursor: 'pointer',
       fontSize: '1.1em',
       fontWeight: '500',
       fontFamily: "'Segoe UI', sans-serif",
       transition: 'background-color 0.3s ease',
     },
-    // loginButtonHover: { backgroundColor: '#0056b3' },
     errorText: {
       color: 'red',
       marginBottom: '15px',
@@ -156,25 +147,19 @@ const LoginPage = () => {
       fontWeight: 'bold',
       textDecoration: 'none',
     },
-    // signUpLinkHover: { textDecoration: 'underline' },
   };
 
-  // Function to handle input focus for dynamic border styling (optional enhancement)
-  // const handleInputFocus = (e) => e.target.style.borderColor = '#007bff';
-  // const handleInputBlur = (e) => e.target.style.borderColor = '#ddd';
-
-  // Styles for the new layout
-  const pageStyle = { // Renamed from old styles.pageContainer
+  const pageStyle = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    backgroundColor: '#f0f2f5', // Light grey page background
+    backgroundColor: '#f0f2f5',
     padding: '20px',
-    fontFamily: "'Segoe UI', sans-serif", // Apply base font family
+    fontFamily: "'Segoe UI', sans-serif",
   };
 
-  const loginBoxStyle = { // New style for the main white box
+  const loginBoxStyle = {
     display: 'flex',
     width: '100%',
     maxWidth: '1000px',
@@ -184,32 +169,23 @@ const LoginPage = () => {
     overflow: 'hidden',
   };
 
-  const carouselColumnStyle = { // Renamed from old styles.leftColumn
+  const carouselColumnStyle = {
     width: '50%',
-    padding: '30px', // Adjusted padding
+    padding: '30px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    // background: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)', // Keep if carousel needs dark bg
-    // color: 'white', // If text needs to be white on dark bg
   };
 
-  const formColumnStyle = { // Renamed from old styles.rightColumn
+  const formColumnStyle = {
     width: '50%',
-    padding: '40px 50px', // Adjusted padding
+    padding: '40px 50px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    backgroundColor: '#ffffff', // Ensure this side is white
+    backgroundColor: '#ffffff',
   };
 
-  // const formContainerStyle = { // This was consolidated into styles.formContainer
-  //   maxWidth: '400px',
-  //   width: '100%',
-  //   margin: '0 auto',
-  // };
-
-  // Logo and Icon styles remain specific to their use
   const logoWithIconStyle = {
     display: 'flex',
     alignItems: 'center',
@@ -230,79 +206,61 @@ const LoginPage = () => {
     color: '#333',
   };
 
-  // const pageStyle = { // DUPLICATE DEFINITION - REMOVED
-  // };
-  // const loginBoxStyle = { // DUPLICATE DEFINITION - REMOVED
-  // };
-  // const carouselColumnStyle = { // DUPLICATE DEFINITION - REMOVED
-  // };
-  // const formColumnStyle = { // DUPLICATE DEFINITION - REMOVED
-  // };
-
-  // The first set of definitions for pageStyle, loginBoxStyle, carouselColumnStyle, formColumnStyle are kept.
-  // The styles object below correctly contains only form element specific styles.
-
   return (
-    <div style={pageStyle}> {/* Outer container for centering */}
-      <div style={loginBoxStyle}> {/* The main white box */}
-        {/* Carousel Column */}
+    <div style={pageStyle}>
+      <div style={loginBoxStyle}>
         <div style={carouselColumnStyle}>
           <Carousel />
         </div>
-
-        {/* Form Column */}
         <div style={formColumnStyle}>
-          <div style={styles.formContainer}> {/* existing formContainer centers the content */}
-            {/* Logo and HR Icon */}
+          <div style={styles.formContainer}>
             <div style={logoWithIconStyle}>
-              <span style={hrIconStyle}>👥</span> {/* HR Icon Placeholder */}
+              <span style={hrIconStyle}>👥</span>
               <h1 style={mainLogoTextStyle}>EmpowerFlow</h1>
             </div>
-
             <h2 style={styles.welcomeHeader}>Welcome Back!</h2>
-          <p style={styles.welcomeSubHeader}>Login to your account</p>
-          {error && <p style={styles.errorText}>{error}</p>}
-          <form onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" style={styles.label}>Email address</label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={styles.input}
-                placeholder="Enter your email"
-                // onFocus={handleInputFocus} onBlur={handleInputBlur}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" style={styles.label}>Password</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={styles.input}
-                placeholder="Enter your password"
-                // onFocus={handleInputFocus} onBlur={handleInputBlur}
-              />
-            </div>
-            <div style={styles.formOptions}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-                <label htmlFor="rememberMe" style={styles.rememberMeLabel}>Remember Me</label>
+            <p style={styles.welcomeSubHeader}>Login to your account</p>
+            {error && <p style={styles.errorText}>{error}</p>}
+            <form onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="email" style={styles.label}>Email address</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={styles.input}
+                  placeholder="Enter your email"
+                />
               </div>
-              <Link to="/forgot-password" style={styles.forgotPasswordLink}>Forgot Password?</Link>
-            </div>
-            <button type="submit" disabled={isLoggingIn} style={styles.loginButton}>
-              {isLoggingIn ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
-          <p style={styles.signUpLinkContainer}>
-            Don't have an account? <Link to="/signup" style={styles.signUpLink}>Sign Up</Link>
-          </p>
+              <div>
+                <label htmlFor="password" style={styles.label}>Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={styles.input}
+                  placeholder="Enter your password"
+                />
+              </div>
+              <div style={styles.formOptions}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                  <label htmlFor="rememberMe" style={styles.rememberMeLabel}>Remember Me</label>
+                </div>
+                <Link to="/forgot-password" style={styles.forgotPasswordLink}>Forgot Password?</Link>
+              </div>
+              <button type="submit" disabled={isLoggingIn} style={styles.loginButton}>
+                {isLoggingIn ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
+            <p style={styles.signUpLinkContainer}>
+              Don't have an account? <Link to="/signup" style={styles.signUpLink}>Sign Up</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
