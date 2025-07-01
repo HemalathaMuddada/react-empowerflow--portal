@@ -56,7 +56,8 @@ const LoginPage = () => {
         console.log("Remember Me:", rememberMe);
         speakGreeting(loggedInUser.name);
       }
-    } catch (err)      setError(err.message || 'Failed to login. Please check your credentials.');
+    } catch (err) { // Added missing opening brace
+      setError(err.message || 'Failed to login. Please check your credentials.');
     } finally {
       setIsLoggingIn(false);
     }
