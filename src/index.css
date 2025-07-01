@@ -5,9 +5,34 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f0f2f5; /* Default background for the app */
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* General link styling */
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Basic button styling if not overridden by components */
+button {
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 1rem;
+}
+
+/* Add some global box-sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
