@@ -29,23 +29,23 @@ import EmployeeDashboard from './pages/EmployeeDashboard';
 // const LeadDashboardPlaceholder = () => {
 //     const { user } = useAuth();
 //     return <PlaceholderComponent pageName="Lead Dashboard" additionalInfo={`Welcome, ${user?.name} (Lead)!`} />;
-// };
+// }; // Removed orphaned brace
 // const ManagerDashboardPlaceholder = () => {
 //     const { user } = useAuth();
 //     return <PlaceholderComponent pageName="Manager Dashboard" additionalInfo={`Welcome, ${user?.name} (Manager)!`} />;
-// };
+// }; // Removed orphaned brace
 // const HRDashboardPlaceholder = () => {
 //     const { user } = useAuth();
 //     return <PlaceholderComponent pageName="HR Dashboard" additionalInfo={`Welcome, ${user?.name} (HR)!`} />;
-// };
+// }; // Removed orphaned brace
 // const SuperAdminDashboardPlaceholder = () => {
 //     const { user } = useAuth();
 //     return <PlaceholderComponent pageName="SuperAdmin Dashboard" additionalInfo={`Welcome, ${user?.name} (SuperAdmin)!`} />;
-// };
+// }; // Removed orphaned brace
 // const EmployeeDashboardPlaceholder = () => {
 //     const { user } = useAuth();
 //     return <PlaceholderComponent pageName="Employee Dashboard" additionalInfo={`Welcome, ${user?.name} (Employee)!`} />;
-};
+// }; // Removed orphaned brace
 
 
 // ProtectedRoute component
