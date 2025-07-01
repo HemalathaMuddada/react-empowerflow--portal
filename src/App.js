@@ -12,17 +12,17 @@ import EmployeeDashboard from './pages/EmployeeDashboard';
 // Placeholder components for unimplemented pages
 // const PlaceholderComponent = ({ pageName, additionalInfo = "" }) => { // No longer needed for these pages
     // const { logout } = useAuth();
-    return (
-      <div style={{ padding: '20px', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
-        <h1>{pageName}</h1>
-        {additionalInfo && <p>{additionalInfo}</p>}
-        <p>This page is under construction.</p>
-        <button onClick={logout} style={{padding: '10px 20px', marginTop: '20px', cursor: 'pointer'}}>Logout</button>
-        <br />
-        <RouterLink to="/">Go to Login (if not authenticated)</RouterLink>
-      </div>
-    );
-};
+//     return (
+//       <div style={{ padding: '20px', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
+//         <h1>{pageName}</h1>
+//         {additionalInfo && <p>{additionalInfo}</p>}
+//         <p>This page is under construction.</p>
+//         <button onClick={logout} style={{padding: '10px 20px', marginTop: '20px', cursor: 'pointer'}}>Logout</button>
+//         <br />
+//         <RouterLink to="/">Go to Login (if not authenticated)</RouterLink>
+//       </div>
+//     );
+// };
 // PlaceholderComponent and specific placeholders are removed as actual components are now used.
 // const SignupPagePlaceholder = () => <PlaceholderComponent pageName="Signup Page" />; // Replaced
 
