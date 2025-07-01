@@ -230,48 +230,17 @@ const LoginPage = () => {
     color: '#333',
   };
 
-  // Overall page container to center the login box
-  const pageStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f0f2f5', // Light grey page background
-    padding: '20px',
-  };
+  // const pageStyle = { // DUPLICATE DEFINITION - REMOVED
+  // };
+  // const loginBoxStyle = { // DUPLICATE DEFINITION - REMOVED
+  // };
+  // const carouselColumnStyle = { // DUPLICATE DEFINITION - REMOVED
+  // };
+  // const formColumnStyle = { // DUPLICATE DEFINITION - REMOVED
+  // };
 
-  // The main login box holding carousel and form
-  const loginBoxStyle = {
-    display: 'flex',
-    width: '100%',
-    maxWidth: '1000px', // Max width of the login box
-    backgroundColor: '#ffffff', // White background for the box
-    borderRadius: '10px', // Rounded corners for the box
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-    overflow: 'hidden', // Important for keeping children within rounded corners
-  };
-
-  // Column for the carousel
-  const carouselColumnStyle = {
-    width: '50%', // Carousel takes half the width of loginBoxStyle
-    // backgroundColor: '#e9ecef', // Optional: Slight off-white if needed
-    padding: '20px', // Padding around carousel
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  // Column for the form
-  const formColumnStyle = {
-    width: '50%',
-    padding: '40px', // More padding for the form area
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-  };
-
-  // Remove the old pageContainer and direct column styles if they conflict
-  // styles.pageContainer, styles.leftColumn, styles.rightColumn might need to be removed or merged
+  // The first set of definitions for pageStyle, loginBoxStyle, carouselColumnStyle, formColumnStyle are kept.
+  // The styles object below correctly contains only form element specific styles.
 
   return (
     <div style={pageStyle}> {/* Outer container for centering */}
