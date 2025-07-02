@@ -80,14 +80,12 @@ const LeavePage = () => {
         { code: 'CAS', name: 'Casual Leave'}
       ]);
     });
-  }, []); // Removed leaveType dependency to avoid potential loops with default setting.
+    // Note: leaveType was removed from dependency array from the useEffect that sets activeTab, which is now removed.
+    // The current useEffect for fetching balances runs once on mount and is correct.
+  }, []);
 
-  // fetchAndUpdateHistory and handleCancelLeave are removed as they belong to LeaveHistoryPage.
-  }, []); // Note: leaveType was removed from dependency array as it might cause re-fetch loops if not handled carefully.
-          // If default setting of leaveType is critical upon availableTypes change, more complex logic might be needed.
-          // For now, setting it once if initially empty is fine.
-
-  // fetchAndUpdateHistory and handleCancelLeave are removed as they belong to LeaveHistoryPage.
+  // fetchAndUpdateHistory and handleCancelLeave functions were previously here and are now correctly removed
+  // as their functionality belongs to LeaveHistoryPage.js (or would be invoked differently if still relevant here).
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
