@@ -4,48 +4,23 @@ import LeaveBalanceCard from '../components/LeaveBalanceCard';
 
 const LeaveBalancesPage = () => {
   const [leaveBalances, setLeaveBalances] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // For year filter
+  // selectedYear, handleYearChange, handleDownload, yearsForFilter removed as controls are removed
 
-  // TODO: In a real app, getLeaveBalances might take 'selectedYear' if balances are year-specific
   useEffect(() => {
+    // getLeaveBalances service does not currently use year, so selectedYear dependency removed.
     getLeaveBalances().then(balances => {
       setLeaveBalances(balances);
     }).catch(err => {
       console.error("Failed to fetch leave balances:", err);
-      setLeaveBalances([]); // Set to empty array on error
+      setLeaveBalances([]);
     });
-  }, [selectedYear]); // Refetch if year changes - assuming service could use it
-
-  const handleYearChange = (event) => {
-    setSelectedYear(parseInt(event.target.value));
-    // Data fetching will re-run due to useEffect dependency
-  };
-
-  const handleDownload = () => {
-    console.log(`Download report for year ${selectedYear}`);
-    // Actual download logic would be here
-  };
-
-  // Define current year and a few previous years for the filter
-  const currentYear = new Date().getFullYear();
-  const yearsForFilter = [currentYear, currentYear - 1, currentYear - 2];
-
+  }, []); // Fetch once on mount
 
   return (
     <div style={styles.pageContainer}>
-      <div style={styles.topActionRow}>
-        <h1 style={styles.pageTitle}>My Leave Balances</h1>
-        <div style={styles.filtersAndActions}>
-          <select value={selectedYear} onChange={handleYearChange} style={{...styles.inputStyling, ...styles.yearFilter}}>
-            {yearsForFilter.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-          <button onClick={handleDownload} style={{...styles.actionButton, marginLeft: '10px'}}>Download Report</button>
-        </div>
-      </div>
+      <h1 style={styles.pageTitle}>My Leave Balances</h1>
 
-      <section style={{...styles.section, ...styles.balanceSummaryContainerStyle}}>
+      <section style={{...styles.section, ...styles.balanceSummaryContainerStyle, marginTop: '20px' /* Ensure some margin if title is directly above */ }}>
         {leaveBalances.length > 0 ? (
           leaveBalances.map(balance => (
             <LeaveBalanceCard
@@ -77,44 +52,20 @@ const LeaveBalancesPage = () => {
 // Styles (can be shared or refined from LeavePage.js styles if needed)
 const styles = {
   pageContainer: {
-    // padding: '0px', // DashboardLayout provides padding
+    // padding: '0px',
   },
-  topActionRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '25px',
-  },
+  // topActionRow style removed
   pageTitle: {
     fontSize: '1.8em',
     color: '#333',
     fontWeight: '600',
-    margin: 0, // Adjusted for flex alignment
+    marginBottom: '20px', // Add margin below title if topActionRow is gone
   },
-  filtersAndActions: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px',
-  },
-  yearFilter: {
-    padding: '8px 12px',
-    borderRadius: '5px',
-    border: '1px solid #ccc',
-    height: '38px', // Match button height
-    minWidth: '100px',
-  },
-  actionButton: {
-    padding: '8px 15px',
-    backgroundColor: '#6c757d', // Secondary button color
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    fontSize: '0.9em',
-    fontWeight: '500',
-    height: '38px',
-  },
-  section: { // Re-used from LeavePage for consistency
+  // filtersAndActions style removed
+  // yearFilter style removed
+  // actionButton style removed (or kept if generic and used elsewhere, but not on this page)
+
+  section: {
     backgroundColor: '#ffffff',
     padding: '20px 25px',
     borderRadius: '8px',
