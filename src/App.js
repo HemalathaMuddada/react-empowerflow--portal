@@ -8,6 +8,7 @@ import ManagerDashboard from './pages/ManagerDashboard';
 import HRDashboard from './pages/HRDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard'; // Corrected path
+import DashboardLayout from './components/DashboardLayout'; // Added import for DashboardLayout
 
 // New placeholder pages for sidebar navigation
 import LeavePage from './pages/LeavePage';
