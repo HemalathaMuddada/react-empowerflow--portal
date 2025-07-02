@@ -24,11 +24,12 @@ const EmployeeDashboard = () => {
   const [areCardsVisible, setAreCardsVisible] = useState(false); // State for load-in animation
 
   useEffect(() => {
+    let timerId = null; // Declare timerId outside the if block
     if (user?.email) {
       // Simulate a slight delay for the animation to be noticeable after data starts loading
       // or tie it to the completion of all/most fetches.
       // For simplicity, a timeout after component mounts and user is available.
-      const timer = setTimeout(() => {
+      timerId = setTimeout(() => { // Assign to timerId
         setAreCardsVisible(true);
       }, 100); // Short delay to trigger transition
 
@@ -71,7 +72,11 @@ const EmployeeDashboard = () => {
         setPayslipData({ value: status, description: 'Latest available' });
       }).catch(() => setPayslipData({ value: 'N/A', description: 'Error fetching' }));
     }
-    return () => clearTimeout(timer); // Cleanup timer
+    return () => {
+      if (timerId) { // Only clear if timerId was set
+        clearTimeout(timerId);
+      }
+    };
   }, [user]);
 
   // Structure for KPI cards, now using state
