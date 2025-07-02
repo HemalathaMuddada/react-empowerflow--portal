@@ -7,7 +7,15 @@ import LeadDashboard from './pages/LeadDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import HRDashboard from './pages/HRDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
-import EmployeeDashboard from './pages/EmployeeDashboard';
+import EmployeeDashboard from './pages/EmployeeDashboard'; // Corrected path
+
+// New placeholder pages for sidebar navigation
+import LeavePage from './pages/LeavePage';
+import PayslipsPage from './pages/PayslipsPage';
+import AttendancePage from './pages/AttendancePage';
+import TasksPage from './pages/TasksPage';
+import DocumentsPage from './pages/DocumentsPage';
+import HelpdeskPage from './pages/HelpdeskPage';
 
 // Placeholder components for unimplemented pages
 // const PlaceholderComponent = ({ pageName, additionalInfo = "" }) => { // No longer needed for these pages
@@ -128,6 +136,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Routes for new sidebar pages */}
+          <Route path="/leave" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} />
+          <Route path="/payslips" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><PayslipsPage /></ProtectedRoute>} />
+          <Route path="/attendance" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><AttendancePage /></ProtectedRoute>} />
+          <Route path="/tasks" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><TasksPage /></ProtectedRoute>} />
+          <Route path="/documents" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><DocumentsPage /></ProtectedRoute>} />
+          <Route path="/helpdesk" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><HelpdeskPage /></ProtectedRoute>} />
 
           {/* Fallback route for any unmatched paths - redirect to login or user's dashboard if logged in */}
           <Route path="*" element={<FallbackNavigate />} />

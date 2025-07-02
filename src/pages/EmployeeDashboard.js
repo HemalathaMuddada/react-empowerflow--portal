@@ -1,111 +1,189 @@
 import React from 'react';
-import DashboardLayout from '../components/DashboardLayout';
-import KPICard from '../components/KPICard';
+import React, { useState, useEffect } from 'react';
+import DashboardKPICard from '../components/DashboardKPICard';
 import { useAuth } from '../contexts/AuthContext';
+
+// Import services
+import { getUpcomingHolidays } from '../services/holidayService';
+import { getLeaveBalances } from '../services/leaveService';
+import { getPendingTasksCount } from '../services/taskService';
+import { getPendingRegularizationsCount } from '../services/attendanceService';
+import { getPerformanceReviewStatus } from '../services/performanceService';
+import { getRecentPayslipStatus } from '../services/payslipService';
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
 
-  const kpiData = [
-    { title: 'Pending Tasks', value: '3', color: '#17a2b8', description: 'Tasks requiring your attention', icon: '📋' },
-    { title: 'Leave Balance', value: '12 Days', color: '#28a745', description: 'Annual paid leave remaining', icon: '✈️' },
-    { title: 'Recent Payslips', value: 'View All', color: '#ffc107', description: 'Access your salary slips', icon: '💰' },
-    { title: 'Company News', value: '2 New', color: '#6f42c1', description: 'Latest updates', icon: '📰' },
+  // State for KPI data
+  const [upcomingHolidayData, setUpcomingHolidayData] = useState({ value: 'Loading...', description: 'Loading...' });
+  const [leaveBalanceData, setLeaveBalanceData] = useState({ value: 'Loading...', description: 'Loading...' });
+  const [pendingTasksData, setPendingTasksData] = useState({ value: 'Loading...' });
+  const [attendanceRegData, setAttendanceRegData] = useState({ value: 'Loading...' });
+  const [performanceData, setPerformanceData] = useState({ value: 'Loading...' });
+  const [payslipData, setPayslipData] = useState({ value: 'Loading...' });
+
+  useEffect(() => {
+    if (user?.email) {
+      // Fetch Upcoming Holiday
+      getUpcomingHolidays(1).then(holidays => {
+        if (holidays.length > 0) {
+          setUpcomingHolidayData({ value: holidays[0].name, description: `On ${new Date(holidays[0].date).toLocaleDateString()}` });
+        } else {
+          setUpcomingHolidayData({ value: 'None', description: 'No upcoming holidays' });
+        }
+      }).catch(() => setUpcomingHolidayData({ value: 'N/A', description: 'Error fetching' }));
+
+      // Fetch Leave Balance (Annual)
+      getLeaveBalances().then(balances => {
+        const annual = balances.find(b => b.type === 'Annual');
+        if (annual) {
+          setLeaveBalanceData({ value: String(annual.balance), unit: 'days', description: 'Annual leave available' });
+        } else {
+          setLeaveBalanceData({ value: 'N/A', description: 'Error fetching' });
+        }
+      }).catch(() => setLeaveBalanceData({ value: 'N/A', description: 'Error fetching' }));
+
+      // Fetch Pending Tasks Count
+      getPendingTasksCount(user.email).then(count => {
+        setPendingTasksData({ value: String(count), unit: count === 1 ? 'task' : 'tasks' });
+      }).catch(() => setPendingTasksData({ value: 'N/A' }));
+
+      // Fetch Pending Attendance Regularizations
+      getPendingRegularizationsCount(user.email).then(count => {
+        setAttendanceRegData({ value: String(count), unit: count === 1 ? 'request' : 'requests' });
+      }).catch(() => setAttendanceRegData({ value: 'N/A' }));
+
+      // Fetch Performance Review Status
+      getPerformanceReviewStatus(user.email).then(status => {
+        setPerformanceData({ value: status, description: 'Current cycle status' });
+      }).catch(() => setPerformanceData({ value: 'N/A', description: 'Error fetching' }));
+
+      // Fetch Recent Payslip Status
+      getRecentPayslipStatus(user.email).then(status => {
+        setPayslipData({ value: status, description: 'Latest available' });
+      }).catch(() => setPayslipData({ value: 'N/A', description: 'Error fetching' }));
+    }
+  }, [user]);
+
+  // Structure for KPI cards, now using state
+  const kpiCardsConfig = [
+    {
+      title: 'Upcoming Holiday',
+      data: upcomingHolidayData,
+      icon: '🎉',
+      linkTo: '/holidays'
+    },
+    {
+      title: 'Leave Balance',
+      data: leaveBalanceData,
+      icon: '✈️',
+      linkTo: '/leave'
+    },
+    {
+      title: 'Pending Tasks',
+      data: pendingTasksData,
+      icon: '📋',
+      linkTo: '/tasks'
+    },
+    {
+      title: 'Attendance Regularizations',
+      data: attendanceRegData,
+      icon: '⏱️',
+      linkTo: '/attendance' // Link to main attendance page or specific section
+    },
+    {
+      title: 'Performance Review',
+      data: performanceData,
+      icon: '📈',
+      linkTo: '/performance' // Placeholder for a potential performance page
+    },
+    {
+      title: 'Recent Payslips',
+      data: payslipData,
+      icon: '💰',
+      linkTo: '/payslips'
+    },
   ];
 
   return (
-    <DashboardLayout>
+    <div>
       <div style={styles.headerContainer}>
-        <h1 style={styles.dashboardTitle}>Employee Dashboard</h1>
-        <p style={styles.welcomeMessage}>Hello, {user?.name}! Here's what's happening.</p>
+        <h1 style={styles.dashboardTitle}>My Dashboard</h1>
       </div>
 
+      <h2 style={styles.sectionTitle}>Quick Overview</h2>
       <div style={styles.kpiGrid}>
-        {kpiData.map((kpi, index) => (
-          <KPICard
+        {kpiCardsConfig.map((kpi, index) => (
+          <DashboardKPICard
             key={index}
             title={kpi.title}
-            value={kpi.value}
-            color={kpi.color}
-            description={kpi.description}
+            value={kpi.data.value}
+            unit={kpi.data.unit}
             icon={kpi.icon}
+            description={kpi.data.description || (kpi.data.value !== 'Loading...' && kpi.data.value !== 'N/A' ? `${kpi.data.value} ${kpi.data.unit || ''}` : 'View details')}
+            linkTo={kpi.linkTo}
           />
         ))}
       </div>
 
-      <div style={styles.contentArea}>
-        <div style={styles.widget}>
-          <h2 style={styles.widgetTitle}>Quick Actions</h2>
-          <ul style={styles.quickLinksList}>
-            <li style={styles.quickLinkItem}><a href="#/apply-leave">Apply for Leave</a></li>
-            <li style={styles.quickLinkItem}><a href="#/submit-expense">Submit Expense</a></li>
-            <li style={styles.quickLinkItem}><a href="#/view-policy">View Company Policies</a></li>
-            <li style={styles.quickLinkItem}><a href="#/update-profile">Update Profile</a></li>
-          </ul>
+      {/* Placeholder for other dashboard sections as per new design */}
+      {/* Example: A section for recent announcements or team updates */}
+      <div style={styles.additionalSection}>
+        <h2 style={styles.sectionTitle}>Announcements</h2>
+        <div style={styles.announcementCard}>
+          <p><strong>System Maintenance:</strong> Scheduled for Dec 25th, 2 AM - 4 AM.</p>
+          <small>Posted by Admin - Dec 20th</small>
         </div>
-        <div style={styles.widget}>
-          <h2 style={styles.widgetTitle}>Upcoming Holidays</h2>
-          <p>No upcoming holidays this week. (Placeholder)</p>
+         <div style={styles.announcementCard}>
+          <p><strong>Year-End Party:</strong> Join us on Dec 28th for the annual celebration!</p>
+          <small>Posted by HR - Dec 18th</small>
         </div>
       </div>
-    </DashboardLayout>
+
+    </div>
   );
 };
 
 const styles = {
   headerContainer: {
-    marginBottom: '25px',
+    marginBottom: '20px', // Reduced margin as welcome msg is in layout
   },
   dashboardTitle: {
-    fontSize: '2em',
+    fontSize: '1.8em', // Slightly smaller as it's now a sub-page title
     color: '#333',
     fontWeight: '600',
-    margin: '0 0 5px 0',
+    margin: '0 0 20px 0', // Add some bottom margin
   },
-  welcomeMessage: {
-    fontSize: '1.1em',
-    color: '#555',
-  },
-  kpiGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-    gap: '20px',
-    marginBottom: '30px',
-  },
-  contentArea: {
-    display: 'grid',
-    gridTemplateColumns: '1fr', // Single column for now, can be 2fr 1fr for side-by-side widgets
-    gap: '20px',
-  },
-  widget: {
-    backgroundColor: '#ffffff',
-    padding: '20px 25px',
-    borderRadius: '8px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-  },
-  widgetTitle: {
-    fontSize: '1.3em',
-    color: '#333',
+  // welcomeMessage: { // Removed as it's in DashboardLayout
+  //   fontSize: '1.1em',
+  //   color: '#555',
+  // },
+  sectionTitle: {
+    fontSize: '1.4em',
+    color: '#444',
     fontWeight: '600',
-    marginBottom: '15px',
+    margin: '30px 0 15px 0',
     borderBottom: '1px solid #eee',
     paddingBottom: '10px',
   },
-  quickLinksList: {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0,
+  kpiGrid: {
+    display: 'grid',
+    // The image suggests 3 cards per row for the main KPIs
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '20px',
+    marginBottom: '10px', // Reduced from 30px
   },
-  quickLinkItem: {
-    padding: '10px 0',
-    borderBottom: '1px dotted #eee',
-    '&:last-child': { // This pseudo-selector won't work directly in inline styles
-      borderBottom: 'none',
-    }
+  additionalSection: {
+    marginTop: '30px',
   },
-  // For the last-child, you'd typically use a CSS class or styled-components
-  // As a workaround for inline styles, you can map and check index:
-  // {kpiData.map((kpi, index, arr) => <li style={{...styles.quickLinkItem, borderBottom: index === arr.length - 1 ? 'none' : '1px dotted #eee' }}>...</li>)}
+  announcementCard: {
+    backgroundColor: '#fff',
+    padding: '15px 20px',
+    borderRadius: '8px',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+    marginBottom: '15px',
+  }
+  // Styles for other sections like charts, tables, etc., would be added here
 };
 
 export default EmployeeDashboard;
