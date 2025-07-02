@@ -1,6 +1,6 @@
 import React from 'react';
 
-const LeaveBalanceCard = ({ type, available, total, icon }) => { // Removed cardColor for now, using default white
+const LeaveBalanceCard = ({ type, available, total, icon, unit }) => { // Added unit to props
   const cardStyle = {
     backgroundColor: '#ffffff',
     padding: '20px',
