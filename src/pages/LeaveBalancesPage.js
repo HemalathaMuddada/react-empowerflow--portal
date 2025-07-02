@@ -42,7 +42,7 @@ const LeaveBalancesPage = () => {
             />
           ))
         ) : (
-          <p>Loading balances or no balances found for {selectedYear}...</p>
+          <p>Loading balances or no balances found...</p>
         )}
       </section>
     </div>
