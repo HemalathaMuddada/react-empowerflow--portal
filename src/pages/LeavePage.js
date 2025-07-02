@@ -15,21 +15,15 @@ const LeavePage = () => {
 
   // State for displaying data
   const [leaveBalances, setLeaveBalances] = useState([]);
-  const [leaveHistory, setLeaveHistory] = useState([]);
-  const [holidaysList, setHolidaysList] = useState([]); // State for holidays
+  const [leaveHistory, setLeaveHistory] = useState([]); // This state will be moved to LeaveHistoryPage.js
+  // const [holidaysList, setHolidaysList] = useState([]); // This state will be moved to CompanyHolidayCalendarPage.js
 
   // State for messages and loading
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // For form submission primarily
   const [formMessage, setFormMessage] = useState({ type: '', text: '' });
 
-  // State for active tab - determine initial tab based on path
-  const determineInitialTab = () => {
-    if (location.pathname === '/leave/calendar') {
-      return 'calendar';
-    }
-    return 'history'; // Default
-  };
-  const [activeTab, setActiveTab] = useState(determineInitialTab);
+  // Tab state is removed as this page will no longer have tabs
+  // const [activeTab, setActiveTab] = useState('history');
 
   // Will be populated from leaveBalances
   const [availableLeaveTypes, setAvailableLeaveTypes] = useState([]);
@@ -37,18 +31,10 @@ const LeavePage = () => {
   // TODO: Modal state for leave application form
   const [showLeaveFormModal, setShowLeaveFormModal] = useState(false);
 
-  // Effect to set active tab based on URL path
-  useEffect(() => {
-    if (location.pathname === '/leave/calendar') {
-      setActiveTab('calendar');
-    } else {
-      setActiveTab('history'); // Default to history for /leave or other sub-paths
-    }
-  }, [location.pathname]);
-
+  // Tab related useEffect removed.
 
   useEffect(() => {
-    // Fetch initial data like balances which might also give us leave types
+    // Fetch initial data - ONLY balances and types needed for this page (ApplyLeavePage)
     getLeaveBalances().then(balances => {
       setLeaveBalances(balances);
       const types = balances.map(b => b.type);
@@ -57,42 +43,16 @@ const LeavePage = () => {
         setLeaveType(types[0]);
       }
     }).catch(err => {
-      console.error("Failed to fetch leave balances/types:", err);
+      console.error("Failed to fetch leave balances/types for ApplyLeavePage:", err);
       setAvailableLeaveTypes(['Annual', 'Sick', 'Casual', 'Unpaid']);
     });
 
-    getLeaveHistory().then(history => {
-      setLeaveHistory(history.sort((a, b) => new Date(b.appliedOn || 0) - new Date(a.appliedOn || 0)));
-    }).catch(err => {
-      console.error("Failed to fetch leave history:", err);
-    });
+    // History, Holidays fetching removed from here.
+  }, []); // Note: leaveType was removed from dependency array as it might cause re-fetch loops if not handled carefully.
+          // If default setting of leaveType is critical upon availableTypes change, more complex logic might be needed.
+          // For now, setting it once if initially empty is fine.
 
-    getHolidays().then(holidays => {
-      setHolidaysList(holidays);
-    }).catch(err => {
-      console.error("Failed to fetch holidays:", err);
-    });
-  }, []); // Main data fetching effect runs once on mount
-
-  const fetchAndUpdateHistory = () => {
-    getLeaveHistory().then(history => {
-      setLeaveHistory(history.sort((a, b) => new Date(b.appliedOn || 0) - new Date(a.appliedOn || 0)));
-    }).catch(err => console.error("Failed to refetch leave history:", err));
-  };
-
-  const handleCancelLeave = async (leaveId) => {
-    setFormMessage({ type: '', text: '' });
-    setIsLoading(true);
-    try {
-      const response = await cancelLeaveRequest(leaveId);
-      setFormMessage({ type: 'success', text: response.message });
-      fetchAndUpdateHistory();
-    } catch (error) {
-      setFormMessage({ type: 'error', text: error.message || `Failed to cancel leave ${leaveId}.` });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // fetchAndUpdateHistory and handleCancelLeave are removed as they belong to LeaveHistoryPage.
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -118,8 +78,8 @@ const LeavePage = () => {
       setStartDate('');
       setEndDate('');
       setReason('');
-      fetchAndUpdateHistory();
-      setShowLeaveFormModal(false); // Close modal on success
+      // fetchAndUpdateHistory(); // This will be called on LeaveHistoryPage after navigation or event
+      setShowLeaveFormModal(false);
     } catch (error) {
       setFormMessage({ type: 'error', text: error.message || 'Failed to apply for leave. Please try again.' });
     } finally {
@@ -201,7 +161,8 @@ const LeavePage = () => {
         </div>
       )}
 
-      {/* Tabbed Interface Section */}
+      {/* Tabbed Interface Section - To be moved to respective pages */}
+      {/*
       <section style={styles.section}>
         <div style={styles.tabsHeader}>
           <button
@@ -219,7 +180,6 @@ const LeavePage = () => {
         <div style={styles.tabContent}>
           {activeTab === 'history' && (
             <div>
-              {/* Existing Leave History Table JSX */}
               {leaveHistory.length > 0 ? (
                 <div style={styles.historyTableContainer}>
                   <table style={styles.historyTable}>
@@ -253,6 +213,7 @@ const LeavePage = () => {
           )}
         </div>
       </section>
+      */}
     </div>
   );
 };

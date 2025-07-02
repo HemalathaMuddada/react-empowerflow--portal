@@ -54,12 +54,15 @@ const DashboardLayout = ({ children }) => {
       // Or, the parent path is just a key and doesn't navigate directly if it only serves to toggle.
       // Let's assume '/leave' is the path for the first sub-item for now or an overview.
       // The main functionality will be in sub-items.
-      id: 'leave', // Unique ID for managing open state
+      id: 'leave',
       subItems: [
-        { name: 'Apply / My Status', path: '/leave', icon: '📝' }, // Default /leave route for main leave page
-        { name: 'Holiday Calendar', path: '/leave/calendar', icon: '📅' }, // This could link to a section/tab
-        // { name: 'Leave Policy', path: '/leave/policy', icon: '📜' }, // Example for future
-        // { name: 'Comp Off', path: '/leave/compoff', icon: '➕' }, // Example for future
+        { name: 'Apply for Leave', path: '/leave/apply', icon: '📝' },
+        { name: 'Leave Balances', path: '/leave/balances', icon: '📊' },
+        { name: 'Leave History', path: '/leave/history', icon: '📜' },
+        { name: 'My Leave Calendar', path: '/leave/my-calendar', icon: '🗓️' },
+        { name: 'Holiday Calendar', path: '/leave/holidays', icon: '📅' },
+        // { name: 'Comp Off Grant / Status', path: '/leave/compoff', icon: '➕' }, // As per image, can add later
+        // { name: 'Leave Policy', path: '/leave/policy', icon: '📄' } // As per image, can add later
       ]
     },
     { name: 'Payslips', path: '/payslips', icon: '💰' },

@@ -18,6 +18,13 @@ import TasksPage from './pages/TasksPage';
 import DocumentsPage from './pages/DocumentsPage';
 import HelpdeskPage from './pages/HelpdeskPage';
 
+// Specific Leave Module Pages
+import LeaveBalancesPage from './pages/LeaveBalancesPage';
+import LeaveHistoryPage from './pages/LeaveHistoryPage';
+import MyLeaveCalendarPage from './pages/MyLeaveCalendarPage';
+import CompanyHolidayCalendarPage from './pages/CompanyHolidayCalendarPage';
+
+
 // Placeholder components for unimplemented pages
 // const PlaceholderComponent = ({ pageName, additionalInfo = "" }) => { // No longer needed for these pages
     // const { logout } = useAuth();
@@ -140,8 +147,14 @@ function App() {
           />
 
           {/* Routes for new sidebar pages */}
+          {/* Leave Module Routes - LeavePage is now effectively ApplyLeavePage and default for /leave */}
           <Route path="/leave" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} />
-          <Route path="/leave/calendar" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} /> {/* LeavePage now handles tab via useLocation */}
+          <Route path="/leave/apply" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} />
+          <Route path="/leave/balances" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeaveBalancesPage /></ProtectedRoute>} />
+          <Route path="/leave/history" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeaveHistoryPage /></ProtectedRoute>} />
+          <Route path="/leave/my-calendar" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><MyLeaveCalendarPage /></ProtectedRoute>} />
+          <Route path="/leave/holidays" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><CompanyHolidayCalendarPage /></ProtectedRoute>} />
+
           <Route path="/payslips" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><PayslipsPage /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><AttendancePage /></ProtectedRoute>} />
           <Route path="/tasks" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><TasksPage /></ProtectedRoute>} />
