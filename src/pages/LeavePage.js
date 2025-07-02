@@ -22,8 +22,8 @@ const LeavePage = () => {
   const [isLoading, setIsLoading] = useState(false); // For form submission primarily
   const [formMessage, setFormMessage] = useState({ type: '', text: '' });
 
-  // Tab state is removed as this page will no longer have tabs
-  const [activeTab, setActiveTab] = useState(determineInitialTab); // This will be removed when LeavePage is split
+  // Tab state and related logic (activeTab, determineInitialTab) are fully removed.
+  // const [activeTab, setActiveTab] = useState(determineInitialTab); // REMOVED
 
   // Form state - existing
   // const [leaveType, setLeaveType] = useState(''); // Will be adjusted for new selector
