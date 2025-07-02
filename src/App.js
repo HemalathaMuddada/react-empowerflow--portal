@@ -141,6 +141,7 @@ function App() {
 
           {/* Routes for new sidebar pages */}
           <Route path="/leave" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} />
+          <Route path="/leave/calendar" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} /> {/* LeavePage now handles tab via useLocation */}
           <Route path="/payslips" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><PayslipsPage /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><AttendancePage /></ProtectedRoute>} />
           <Route path="/tasks" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><TasksPage /></ProtectedRoute>} />

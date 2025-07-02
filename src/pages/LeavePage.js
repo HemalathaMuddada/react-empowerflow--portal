@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom'; // Import useLocation
 import { getLeaveBalances, getLeaveHistory, applyForLeave, cancelLeaveRequest } from '../services/leaveService';
-import { getHolidays } from '../services/holidayService'; // Import holiday service
+import { getHolidays } from '../services/holidayService';
 import LeaveBalanceCard from '../components/LeaveBalanceCard';
 
 const LeavePage = () => {
+  const location = useLocation(); // Get location object
+
   // State for the leave application form
   const [leaveType, setLeaveType] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -19,14 +22,29 @@ const LeavePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formMessage, setFormMessage] = useState({ type: '', text: '' });
 
-  // State for active tab
-  const [activeTab, setActiveTab] = useState('history'); // 'history' or 'calendar'
+  // State for active tab - determine initial tab based on path
+  const determineInitialTab = () => {
+    if (location.pathname === '/leave/calendar') {
+      return 'calendar';
+    }
+    return 'history'; // Default
+  };
+  const [activeTab, setActiveTab] = useState(determineInitialTab);
 
   // Will be populated from leaveBalances
   const [availableLeaveTypes, setAvailableLeaveTypes] = useState([]);
 
   // TODO: Modal state for leave application form
   const [showLeaveFormModal, setShowLeaveFormModal] = useState(false);
+
+  // Effect to set active tab based on URL path
+  useEffect(() => {
+    if (location.pathname === '/leave/calendar') {
+      setActiveTab('calendar');
+    } else {
+      setActiveTab('history'); // Default to history for /leave or other sub-paths
+    }
+  }, [location.pathname]);
 
 
   useEffect(() => {
@@ -54,7 +72,7 @@ const LeavePage = () => {
     }).catch(err => {
       console.error("Failed to fetch holidays:", err);
     });
-  }, []);
+  }, []); // Main data fetching effect runs once on mount
 
   const fetchAndUpdateHistory = () => {
     getLeaveHistory().then(history => {
