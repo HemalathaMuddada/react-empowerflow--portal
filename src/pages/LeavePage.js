@@ -15,18 +15,36 @@ const LeavePage = () => {
 
   // State for displaying data
   const [leaveBalances, setLeaveBalances] = useState([]);
-  const [leaveHistory, setLeaveHistory] = useState([]); // This state will be moved to LeaveHistoryPage.js
-  // const [holidaysList, setHolidaysList] = useState([]); // This state will be moved to CompanyHolidayCalendarPage.js
+  // const [leaveHistory, setLeaveHistory] = useState([]); // Moved to LeaveHistoryPage.js
+  // const [holidaysList, setHolidaysList] = useState([]); // Moved to CompanyHolidayCalendarPage.js
 
   // State for messages and loading
   const [isLoading, setIsLoading] = useState(false); // For form submission primarily
   const [formMessage, setFormMessage] = useState({ type: '', text: '' });
 
   // Tab state is removed as this page will no longer have tabs
-  // const [activeTab, setActiveTab] = useState('history');
+  const [activeTab, setActiveTab] = useState(determineInitialTab); // This will be removed when LeavePage is split
 
-  // Will be populated from leaveBalances
-  const [availableLeaveTypes, setAvailableLeaveTypes] = useState([]);
+  // Form state - existing
+  // const [leaveType, setLeaveType] = useState(''); // Will be adjusted for new selector
+  // const [startDate, setStartDate] = useState('');
+  // const [endDate, setEndDate] = useState('');
+  // const [reason, setReason] = useState('');
+
+  // New state variables for the redesigned modal
+  const [startDateSession, setStartDateSession] = useState('full'); // 'full', 'firstHalf', 'secondHalf'
+  const [endDateSession, setEndDateSession] = useState('full');   // 'full', 'firstHalf', 'secondHalf'
+  const [contactNumber, setContactNumber] = useState('');
+  const [attachedFile, setAttachedFile] = useState(null); // Store File object or file name
+  const [calculatedDays, setCalculatedDays] = useState(0); // For "Applying for: X Days"
+
+  // Available leave types - now an array of objects
+  // Will be populated from leaveBalances, which also needs to be an array of objects with codes
+  const [availableLeaveTypes, setAvailableLeaveTypes] = useState([
+    // Example structure, will be derived from leaveBalances
+    // { code: 'CL', name: 'Casual Leave', balance: 5, total: 5 },
+    // { code: 'SL', name: 'Sick Leave', balance: 8, total: 10 },
+  ]);
 
   // TODO: Modal state for leave application form
   const [showLeaveFormModal, setShowLeaveFormModal] = useState(false);
@@ -34,20 +52,37 @@ const LeavePage = () => {
   // Tab related useEffect removed.
 
   useEffect(() => {
-    // Fetch initial data - ONLY balances and types needed for this page (ApplyLeavePage)
+    // Fetch initial data - balances and derive leave types for selector
     getLeaveBalances().then(balances => {
       setLeaveBalances(balances);
-      const types = balances.map(b => b.type);
-      setAvailableLeaveTypes(types.length > 0 ? types : ['Annual', 'Sick', 'Casual', 'Unpaid']);
-      if (!leaveType && types.length > 0) {
-        setLeaveType(types[0]);
+      const typesForSelector = balances.map(b => ({
+        // Assuming leaveService now provides 'code', or we derive it.
+        // For now, let's assume service provides 'type' (full name) and we might need a mapping for short codes.
+        // Or, the button UI will just use the full name for now if codes aren't in service.
+        // Let's use full name for state `leaveType` and buttons can display a derived short code or full name.
+        code: b.code || b.type.match(/\b([A-Z])/g)?.join('') || b.type.substring(0,2).toUpperCase(), // e.g., CL, SL, ANNL
+        name: b.type,
+      }));
+      setAvailableLeaveTypes(typesForSelector.length > 0 ? typesForSelector : [
+        { code: 'ANN', name: 'Annual Leave' },
+        { code: 'SIC', name: 'Sick Leave' },
+        { code: 'CAS', name: 'Casual Leave'}
+      ]);
+      // Set default selected leave type using its name (or code if state stores code)
+      if (!leaveType && typesForSelector.length > 0) {
+        setLeaveType(typesForSelector[0].name); // Default to the full name of the first type
       }
     }).catch(err => {
       console.error("Failed to fetch leave balances/types for ApplyLeavePage:", err);
-      setAvailableLeaveTypes(['Annual', 'Sick', 'Casual', 'Unpaid']);
+      setAvailableLeaveTypes([
+        { code: 'ANN', name: 'Annual Leave' },
+        { code: 'SIC', name: 'Sick Leave' },
+        { code: 'CAS', name: 'Casual Leave'}
+      ]);
     });
+  }, []); // Removed leaveType dependency to avoid potential loops with default setting.
 
-    // History, Holidays fetching removed from here.
+  // fetchAndUpdateHistory and handleCancelLeave are removed as they belong to LeaveHistoryPage.
   }, []); // Note: leaveType was removed from dependency array as it might cause re-fetch loops if not handled carefully.
           // If default setting of leaveType is critical upon availableTypes change, more complex logic might be needed.
           // For now, setting it once if initially empty is fine.
@@ -70,15 +105,38 @@ const LeavePage = () => {
       return;
     }
 
+    if (calculatedDays <= 0) {
+      setFormMessage({ type: 'error', text: 'The selected dates and sessions result in zero or negative leave days. Please check your selection.' });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const applicationData = { leaveType, startDate, endDate, reason };
-      const response = await applyForLeave(applicationData);
+      const applicationData = {
+        leaveType,
+        startDate,
+        endDate,
+        reason,
+        days: calculatedDays, // Pass the calculated days
+        startDateSession,
+        endDateSession,
+        contactNumber,
+        // attachedFileName: attachedFile ? attachedFile.name : null // Example of passing file info
+      };
+      const response = await applyForLeave(applicationData); // Service will need to accept these
       setFormMessage({ type: 'success', text: response.message });
-      setLeaveType(availableLeaveTypes.length > 0 ? availableLeaveTypes[0] : '');
+
+      // Clear form - including new fields
+      setLeaveType(availableLeaveTypes.length > 0 ? availableLeaveTypes[0].name : '');
       setStartDate('');
       setEndDate('');
       setReason('');
-      // fetchAndUpdateHistory(); // This will be called on LeaveHistoryPage after navigation or event
+      setStartDateSession('full');
+      setEndDateSession('full');
+      setContactNumber('');
+      setAttachedFile(null);
+      setCalculatedDays(0);
+
       setShowLeaveFormModal(false);
     } catch (error) {
       setFormMessage({ type: 'error', text: error.message || 'Failed to apply for leave. Please try again.' });
@@ -88,26 +146,159 @@ const LeavePage = () => {
   };
 
   // Placeholder for Leave Application Form (to be moved to a modal)
-  const renderLeaveApplicationForm = () => (
-    <form onSubmit={handleFormSubmit} style={styles.form}>
-      {/* ... (existing form JSX: leaveType select, date inputs, reason textarea, message, button) ... */}
-      {/* This will be copied into the modal component later */}
-      <div style={styles.formGroup}>
-        <label htmlFor="leaveType" style={styles.label}>Leave Type:</label>
-        <select id="leaveType" value={leaveType} onChange={(e) => setLeaveType(e.target.value)} required style={styles.input}>
-          <option value="">-- Select Leave Type --</option>
-          {availableLeaveTypes.map(type => (<option key={type} value={type}>{type}</option>))}
-        </select>
-      </div>
-      <div style={styles.formRow}>
-        <div style={{...styles.formGroup, ...styles.formGroupHalf}}><label htmlFor="startDate" style={styles.label}>Start Date:</label><input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required style={styles.input}/></div>
-        <div style={{...styles.formGroup, ...styles.formGroupHalf}}><label htmlFor="endDate" style={styles.label}>End Date:</label><input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required style={styles.input}/></div>
-      </div>
-      <div style={styles.formGroup}><label htmlFor="reason" style={styles.label}>Reason:</label><textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} required rows="4" style={{...styles.input, ...styles.textarea}}/></div>
-      {formMessage.text && (<p style={{ ...styles.message, color: formMessage.type === 'error' ? 'red' : (formMessage.type === 'success' ? 'green' : 'blue') }}>{formMessage.text}</p>)}
-      <button type="submit" style={styles.submitButton} disabled={isLoading}>{isLoading ? 'Submitting...' : 'Apply for Leave'}</button>
-    </form>
-  );
+  // Moved and improved calculateAppliedDays function
+  const calculateAppliedDaysLogic = (sDate, eDate, startSession, endSession) => {
+    if (!sDate || !eDate) return 0;
+
+    const start = new Date(sDate);
+    const end = new Date(eDate);
+
+    if (end < start) return 0; // Invalid date range
+
+    // Calculate difference in days
+    let dayDifference = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    let numberOfDays = dayDifference + 1; // Inclusive of start and end date
+
+    // Adjust for half days
+    if (start.getTime() === end.getTime()) { // Single day leave
+      if (startSession !== 'full' && endSession !== 'full' && startSession !== endSession) {
+        // e.g. start is firstHalf, end is secondHalf - this is an invalid selection for a single day or should be 1 day.
+        // For simplicity, if both are half days on the same day, it's 1 day unless they are the SAME half.
+        // If start=firstHalf, end=firstHalf -> 0.5 day. If start=firstHalf, end=secondHalf -> 1 day.
+        // This logic can get complex. A common rule: if single day, only one session choice matters or it's 0.5.
+        // Let's assume single day half-day selection means 0.5 days.
+        if (startSession !== 'full' || endSession !== 'full') { // If either is a half day
+             if (startSession === endSession && (startSession === 'firstHalf' || startSession === 'secondHalf')) {
+                numberOfDays = 0.5; // Both start and end are the same half day
+             } else if (startSession !== 'full' && endSession !== 'full' && startSession !== endSession) {
+                numberOfDays = 1; // e.g. First half of Day1 to Second half of Day1
+             } else { // One is full, other is half - this implies the single half day is taken.
+                numberOfDays = 0.5;
+             }
+        }
+      } else if (startSession !== 'full' || endSession !== 'full') { // If one is half day on a single day leave
+        numberOfDays = 0.5;
+      }
+    } else { // Multi-day leave
+      if (startSession === 'secondHalf') {
+        numberOfDays -= 0.5;
+      }
+      if (endSession === 'firstHalf') {
+        numberOfDays -= 0.5;
+      }
+      // If start is firstHalf, it's still a full day counted for start.
+      // If end is secondHalf, it's still a full day counted for end.
+    }
+    return Math.max(0, numberOfDays); // Ensure non-negative
+  };
+
+  useEffect(() => {
+    const days = calculateAppliedDaysLogic(startDate, endDate, startDateSession, endDateSession);
+    setCalculatedDays(days);
+  }, [startDate, endDate, startDateSession, endDateSession]);
+
+
+  const renderLeaveApplicationForm = () => {
+    // Find current balance for selected leave type
+    const currentBalanceDetails = leaveBalances.find(b => b.type === leaveType);
+    const currentBalanceValue = currentBalanceDetails ? currentBalanceDetails.balance : 'N/A';
+
+    // const daysApplied = calculatedDays; // Use state here
+
+    return (
+      <form onSubmit={handleFormSubmit} style={styles.form}>
+        {/* Leave Type Button Selector */}
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Leave Type:</label>
+          <div style={styles.leaveTypeSelector}>
+            {availableLeaveTypes.map(lt => (
+              <button
+                type="button"
+                key={lt.code}
+                style={leaveType === lt.name ? {...styles.leaveTypeButton, ...styles.leaveTypeButtonActive} : styles.leaveTypeButton}
+                onClick={() => setLeaveType(lt.name)} // Sets full name as leaveType state
+              >
+                {lt.code} {/* Display short code */}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Date Inputs with Session Selectors */}
+        <div style={styles.formRow}>
+          {/* From Date */}
+          <div style={{...styles.formGroup, ...styles.formGroupHalf}}>
+            <label htmlFor="startDate" style={styles.label}>From Date:</label>
+            <div style={styles.dateInputContainer}>
+              <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required style={styles.input} />
+              {/* <span style={styles.calendarIcon}>📅</span> Placeholder */}
+            </div>
+            <div style={styles.sessionSelector}>
+              {['full', 'firstHalf', 'secondHalf'].map(session => (
+                <label key={`start-${session}`} style={styles.sessionLabel}>
+                  <input type="radio" name="startDateSession" value={session} checked={startDateSession === session} onChange={(e) => setStartDateSession(e.target.value)} />
+                  {session.replace('Half', ' Half')}
+                </label>
+              ))}
+            </div>
+          </div>
+          {/* To Date */}
+          <div style={{...styles.formGroup, ...styles.formGroupHalf}}>
+            <label htmlFor="endDate" style={styles.label}>To Date:</label>
+            <div style={styles.dateInputContainer}>
+              <input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required style={styles.input} />
+              {/* <span style={styles.calendarIcon}>📅</span> Placeholder */}
+            </div>
+            <div style={styles.sessionSelector}>
+              {['full', 'firstHalf', 'secondHalf'].map(session => (
+                <label key={`end-${session}`} style={styles.sessionLabel}>
+                  <input type="radio" name="endDateSession" value={session} checked={endDateSession === session} onChange={(e) => setEndDateSession(e.target.value)} />
+                  {session.replace('Half', ' Half')}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Contextual Balance and Applying For Display */}
+        <div style={styles.formGroup}>
+          <div style={styles.contextualInfo}>
+            <span>Balance: <strong>{currentBalanceValue} Days</strong></span>
+            <span>Applying for: <strong>{calculatedDays} Days</strong></span> {/* Now uses state */}
+          </div>
+        </div>
+
+        {/* Reason */}
+        <div style={styles.formGroup}>
+          <label htmlFor="reason" style={styles.label}>Reason:</label>
+          <textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} required rows="3" style={{...styles.input, ...styles.textarea}}/>
+        </div>
+
+        {/* Contact Number */}
+        <div style={styles.formGroup}>
+          <label htmlFor="contactNumber" style={styles.label}>Contact Number During Leave:</label>
+          <input type="tel" id="contactNumber" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} style={styles.input} placeholder="Optional"/>
+        </div>
+
+        {/* File Attachment (Mock) */}
+        <div style={styles.formGroup}>
+          <label htmlFor="attachment" style={styles.label}>Attach File (Optional):</label>
+          <input type="file" id="attachment" onChange={(e) => setAttachedFile(e.target.files[0])} style={styles.input} />
+          {attachedFile && <p style={styles.fileNameDisplay}>Selected: {attachedFile.name}</p>}
+        </div>
+
+        {formMessage.text && (<p style={{ ...styles.message, color: formMessage.type === 'error' ? 'red' : (formMessage.type === 'success' ? 'green' : 'blue') }}>{formMessage.text}</p>)}
+
+        {/* Modal Action Buttons */}
+        <div style={styles.modalActions}>
+          <button type="button" onClick={() => setShowLeaveFormModal(false)} style={{...styles.actionButton, ...styles.cancelModalButton}}>Cancel</button>
+          <button type="submit" style={{...styles.submitButton, ...styles.applyModalButton}} disabled={isLoading}>
+            {isLoading ? 'Submitting...' : 'Apply'}
+          </button>
+        </div>
+      </form>
+    );
+  };
 
 
   return (
@@ -425,7 +616,79 @@ const styles = {
     borderBottom: '3px solid #007bff',
   },
   tabContent: {
-    paddingTop: '20px', // Space above tab content
+    paddingTop: '20px',
+  },
+  // Styles for new elements in Apply Leave Modal
+  leaveTypeSelector: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '10px',
+    marginBottom: '15px',
+  },
+  leaveTypeButton: {
+    padding: '8px 12px',
+    border: '1px solid #ccc',
+    borderRadius: '20px', // Pill shape
+    backgroundColor: '#f8f9fa',
+    color: '#495057',
+    cursor: 'pointer',
+    fontSize: '0.9em',
+    transition: 'all 0.2s ease',
+  },
+  leaveTypeButtonActive: {
+    backgroundColor: '#007bff',
+    color: '#fff',
+    borderColor: '#007bff',
+    fontWeight: '500',
+  },
+  dateInputContainer: { // If we add a calendar icon
+    display: 'flex',
+    alignItems: 'center',
+    // input[type="date"] would need styling to remove default icon if we add our own
+  },
+  // calendarIcon: { marginLeft: '-25px', color: '#ccc' }, // Example if icon is overlaid
+  sessionSelector: {
+    display: 'flex',
+    gap: '10px',
+    marginTop: '8px',
+    fontSize: '0.85em',
+  },
+  sessionLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    cursor: 'pointer',
+  },
+  contextualInfo: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '10px 0',
+    fontSize: '0.9em',
+    color: '#555',
+    borderTop: '1px dashed #eee',
+    borderBottom: '1px dashed #eee',
+    marginBottom: '15px',
+  },
+  fileNameDisplay: {
+    fontSize: '0.85em',
+    color: '#555',
+    marginTop: '5px',
+    fontStyle: 'italic',
+  },
+  modalActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '10px',
+    marginTop: '20px',
+  },
+  applyModalButton: { // Specific style for Apply button in modal if different from general submit
+    // Inherits from styles.submitButton, can add overrides
+    padding: '10px 20px', // Make it more prominent
+  },
+  cancelModalButton: { // Specific style for Cancel button in modal
+     // Inherits from styles.actionButton, can add overrides
+    backgroundColor: '#6c757d', // Grey cancel button
+    padding: '10px 20px',
   },
   // History table styles remain relevant
   historyTableContainer: {

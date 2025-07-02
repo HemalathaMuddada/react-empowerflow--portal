@@ -37,29 +37,38 @@ export const getLeaveHistory = () => {
 };
 
 // Simulates applying for leave
-export const applyForLeave = (leaveApplication) => {
+export const applyForLeave = (applicationData) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      const { leaveType, startDate, endDate, reason } = leaveApplication;
-      // Basic validation (can be expanded)
-      if (!leaveType || !startDate || !endDate || !reason) {
-        return reject({ message: 'All fields are required for leave application.' });
-      }
+      const {
+        leaveType,
+        startDate,
+        endDate,
+        reason,
+        days, // Use pre-calculated days
+        startDateSession,
+        endDateSession,
+        contactNumber,
+        // attachedFileName
+      } = applicationData;
 
-      // Calculate days (simple version, can be improved with date-fns or similar)
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      if (start > end) {
-        return reject({ message: 'End date cannot be before start date.' });
+      // Basic validation (can be expanded)
+      if (!leaveType || !startDate || !endDate || !reason || days === undefined || days <= 0) {
+        return reject({ message: 'All fields are required and leave days must be greater than 0.' });
       }
-      const diffTime = Math.abs(end - start);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Include start day
+      // Date validation already done client-side, but can re-verify if needed:
+      // const start = new Date(startDate);
+      // const end = new Date(endDate);
+      // if (start > end) {
+      //   return reject({ message: 'End date cannot be before start date.' });
+      // }
 
       const balanceEntry = userLeaveData.balances.find(b => b.type === leaveType);
       if (!balanceEntry) {
         return reject({ message: `Invalid leave type: ${leaveType}` });
       }
-      if (balanceEntry.balance < diffDays) {
+      // Check balance for leave types that have one (LOP Taken does not)
+      if (balanceEntry.balance !== undefined && balanceEntry.balance < days) {
         return reject({ message: `Insufficient ${leaveType} leave balance.` });
       }
 
@@ -68,16 +77,20 @@ export const applyForLeave = (leaveApplication) => {
         type: leaveType,
         startDate,
         endDate,
-        days: diffDays,
-        status: 'Pending', // Default status
+        startDateSession, // Store session details
+        endDateSession,   // Store session details
+        days, // Use the days calculated by UI
+        status: 'Pending',
         reason,
+        contactNumber: contactNumber || '', // Store contact number
+        // attachment: attachedFileName || null, // Store attachment info
         appliedOn: new Date().toISOString().split('T')[0],
       };
 
       userLeaveData.history.push(newLeave);
-      // Optionally, deduct from balance if auto-deduction on apply is desired,
-      // or wait for approval. For now, we'll let it be pending without deduction.
-      // balanceEntry.balance -= diffDays;
+      // No balance deduction on application in this dummy service.
+      // If implemented, it should use the 'days' value.
+      // if (balanceEntry.balance !== undefined) balanceEntry.balance -= days;
 
       resolve({ message: 'Leave applied successfully. Awaiting approval.', leave: newLeave });
     }, 600);
