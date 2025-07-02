@@ -160,11 +160,10 @@ const LeavePage = () => {
           leaveBalances.map(balance => (
             <LeaveBalanceCard
               key={balance.type}
-              type={balance.type + ' Leave'} // e.g., "Annual Leave"
+              type={balance.type + ' Leave'}
               available={balance.balance}
               total={balance.total}
-              // icon={getIconForLeaveType(balance.type)} // Placeholder for icon logic
-              // cardColor={getColorForLeaveType(balance.type)} // Placeholder for color logic
+              icon={balance.type === 'Annual' ? '🏖️' : balance.type === 'Sick' ? '🤒' : balance.type === 'Casual' ? '🚶' : '📄'} // Assign basic icons
             />
           ))
         ) : (

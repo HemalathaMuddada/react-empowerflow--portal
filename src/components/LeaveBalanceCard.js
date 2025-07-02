@@ -1,46 +1,75 @@
 import React from 'react';
 
-const LeaveBalanceCard = ({ type, available, total, icon, cardColor }) => {
+const LeaveBalanceCard = ({ type, available, total, icon }) => { // Removed cardColor for now, using default white
   const cardStyle = {
-    backgroundColor: cardColor || '#f8f9fa', // Light background, can be themed
+    backgroundColor: '#ffffff',
     padding: '20px',
     borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-    textAlign: 'center',
-    minWidth: '180px', // Ensure cards have a decent width
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)', // Slightly more pronounced shadow
+    // textAlign: 'left', // Align text to left as per common card UIs
+    minWidth: '220px', // Adjusted minWidth
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between', // Helps if there's a link/action at bottom
+  };
+
+  const headerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '15px',
   };
 
   const iconStyle = {
-    fontSize: '2.5em',
-    color: '#007bff', // Primary color for icon, can be themed
+    fontSize: '1.8em', // Icon can be smaller, or part of the type text line
+    color: '#007bff',
+    marginRight: '10px',
+  };
+
+  const typeStyle = { // Leave Type Name
+    fontSize: '1.1em', // Slightly larger
+    fontWeight: '600',
+    color: '#343a40', // Darker text
+    margin: 0,
+  };
+
+  const balanceDetailsStyle = {
+    textAlign: 'center', // Center the numbers
     marginBottom: '10px',
   };
 
-  const typeStyle = {
-    fontSize: '1em',
-    fontWeight: '600',
-    color: '#495057',
-    marginBottom: '5px',
-  };
-
-  const availableStyle = {
-    fontSize: '2em',
+  const availableValueStyle = { // The "10" in "10 Available"
+    fontSize: '2.8em', // Very prominent
     fontWeight: 'bold',
-    color: '#28a745', // Green for available, can be themed
-    marginBottom: '2px',
+    color: '#007bff', // Primary theme color for emphasis
+    lineHeight: '1.1',
   };
 
-  const totalStyle = {
-    fontSize: '0.85em',
+  const availableTextStyle = { // The "Available" text
+    fontSize: '0.9em',
     color: '#6c757d',
+    display: 'block', // Make it appear below the number
+    marginTop: '2px',
   };
+
+  const totalTextStyle = { // "Total: X Days"
+    fontSize: '0.9em',
+    color: '#6c757d',
+    textAlign: 'center', // Center this text
+    marginTop: '10px',
+  };
+
 
   return (
     <div style={cardStyle}>
-      {icon && <div style={iconStyle}>{icon}</div>}
-      <div style={typeStyle}>{type}</div>
-      <div style={availableStyle}>{available}</div>
-      <div style={totalStyle}>of {total} Days</div>
+      <div style={headerStyle}>
+        {icon && <span style={iconStyle}>{icon}</span>}
+        <h4 style={typeStyle}>{type}</h4>
+      </div>
+      <div style={balanceDetailsStyle}>
+        <div style={availableValueStyle}>{available}</div>
+        <div style={availableTextStyle}>Available</div>
+      </div>
+      <div style={totalTextStyle}>Total: {total} Days</div>
     </div>
   );
 };
