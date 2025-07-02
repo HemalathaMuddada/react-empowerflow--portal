@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getLeaveBalances, getLeaveHistory, applyForLeave, cancelLeaveRequest } from '../services/leaveService'; // Added cancelLeaveRequest
+import { getLeaveBalances, getLeaveHistory, applyForLeave, cancelLeaveRequest } from '../services/leaveService';
+import { getHolidays } from '../services/holidayService'; // Import holiday service
+import LeaveBalanceCard from '../components/LeaveBalanceCard';
 
 const LeavePage = () => {
   // State for the leave application form
-  const [leaveType, setLeaveType] = useState(''); // e.g., 'Annual', 'Sick'
+  const [leaveType, setLeaveType] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
@@ -11,35 +13,46 @@ const LeavePage = () => {
   // State for displaying data
   const [leaveBalances, setLeaveBalances] = useState([]);
   const [leaveHistory, setLeaveHistory] = useState([]);
-  // No need for: const { cancelLeaveRequest } = leaveService; as it's directly imported
+  const [holidaysList, setHolidaysList] = useState([]); // State for holidays
 
   // State for messages and loading
   const [isLoading, setIsLoading] = useState(false);
-  const [formMessage, setFormMessage] = useState({ type: '', text: '' }); // type: 'success' or 'error'
+  const [formMessage, setFormMessage] = useState({ type: '', text: '' });
+
+  // State for active tab
+  const [activeTab, setActiveTab] = useState('history'); // 'history' or 'calendar'
 
   // Will be populated from leaveBalances
   const [availableLeaveTypes, setAvailableLeaveTypes] = useState([]);
 
+  // TODO: Modal state for leave application form
+  const [showLeaveFormModal, setShowLeaveFormModal] = useState(false);
+
+
   useEffect(() => {
     // Fetch initial data like balances which might also give us leave types
     getLeaveBalances().then(balances => {
-      setLeaveBalances(balances); // For display later
+      setLeaveBalances(balances);
       const types = balances.map(b => b.type);
-      setAvailableLeaveTypes(types.length > 0 ? types : ['Annual', 'Sick', 'Casual', 'Unpaid']); // Fallback if no balances
-      // Set a default leave type if not already set and types are available
+      setAvailableLeaveTypes(types.length > 0 ? types : ['Annual', 'Sick', 'Casual', 'Unpaid']);
       if (!leaveType && types.length > 0) {
         setLeaveType(types[0]);
       }
     }).catch(err => {
       console.error("Failed to fetch leave balances/types:", err);
-      setAvailableLeaveTypes(['Annual', 'Sick', 'Casual', 'Unpaid']); // Fallback
+      setAvailableLeaveTypes(['Annual', 'Sick', 'Casual', 'Unpaid']);
     });
 
     getLeaveHistory().then(history => {
-      setLeaveHistory(history.sort((a, b) => new Date(b.appliedOn || 0) - new Date(a.appliedOn || 0))); // Show newest first
+      setLeaveHistory(history.sort((a, b) => new Date(b.appliedOn || 0) - new Date(a.appliedOn || 0)));
     }).catch(err => {
       console.error("Failed to fetch leave history:", err);
-      // Optionally set an error state for history display
+    });
+
+    getHolidays().then(holidays => {
+      setHolidaysList(holidays);
+    }).catch(err => {
+      console.error("Failed to fetch holidays:", err);
     });
   }, []);
 
@@ -50,12 +63,12 @@ const LeavePage = () => {
   };
 
   const handleCancelLeave = async (leaveId) => {
-    setFormMessage({ type: '', text: '' }); // Clear previous messages
-    setIsLoading(true); // Potentially set a different loading state for cancellation if needed
+    setFormMessage({ type: '', text: '' });
+    setIsLoading(true);
     try {
       const response = await cancelLeaveRequest(leaveId);
       setFormMessage({ type: 'success', text: response.message });
-      fetchAndUpdateHistory(); // Refetch history after cancellation
+      fetchAndUpdateHistory();
     } catch (error) {
       setFormMessage({ type: 'error', text: error.message || `Failed to cancel leave ${leaveId}.` });
     } finally {
@@ -68,7 +81,6 @@ const LeavePage = () => {
     setFormMessage({ type: '', text: '' });
     setIsLoading(true);
 
-    // Basic client-side validation
     if (!leaveType || !startDate || !endDate || !reason) {
       setFormMessage({ type: 'error', text: 'All fields are required.' });
       setIsLoading(false);
@@ -84,13 +96,12 @@ const LeavePage = () => {
       const applicationData = { leaveType, startDate, endDate, reason };
       const response = await applyForLeave(applicationData);
       setFormMessage({ type: 'success', text: response.message });
-      // Clear form
-      setLeaveType(availableLeaveTypes.length > 0 ? availableLeaveTypes[0] : ''); // Reset to first available or empty
+      setLeaveType(availableLeaveTypes.length > 0 ? availableLeaveTypes[0] : '');
       setStartDate('');
       setEndDate('');
       setReason('');
-      fetchAndUpdateHistory(); // Refetch history
-      // TODO: Optionally refetch balances if they are affected immediately
+      fetchAndUpdateHistory();
+      setShowLeaveFormModal(false); // Close modal on success
     } catch (error) {
       setFormMessage({ type: 'error', text: error.message || 'Failed to apply for leave. Please try again.' });
     } finally {
@@ -98,149 +109,121 @@ const LeavePage = () => {
     }
   };
 
+  // Placeholder for Leave Application Form (to be moved to a modal)
+  const renderLeaveApplicationForm = () => (
+    <form onSubmit={handleFormSubmit} style={styles.form}>
+      {/* ... (existing form JSX: leaveType select, date inputs, reason textarea, message, button) ... */}
+      {/* This will be copied into the modal component later */}
+      <div style={styles.formGroup}>
+        <label htmlFor="leaveType" style={styles.label}>Leave Type:</label>
+        <select id="leaveType" value={leaveType} onChange={(e) => setLeaveType(e.target.value)} required style={styles.input}>
+          <option value="">-- Select Leave Type --</option>
+          {availableLeaveTypes.map(type => (<option key={type} value={type}>{type}</option>))}
+        </select>
+      </div>
+      <div style={styles.formRow}>
+        <div style={{...styles.formGroup, ...styles.formGroupHalf}}><label htmlFor="startDate" style={styles.label}>Start Date:</label><input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required style={styles.input}/></div>
+        <div style={{...styles.formGroup, ...styles.formGroupHalf}}><label htmlFor="endDate" style={styles.label}>End Date:</label><input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required style={styles.input}/></div>
+      </div>
+      <div style={styles.formGroup}><label htmlFor="reason" style={styles.label}>Reason:</label><textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} required rows="4" style={{...styles.input, ...styles.textarea}}/></div>
+      {formMessage.text && (<p style={{ ...styles.message, color: formMessage.type === 'error' ? 'red' : (formMessage.type === 'success' ? 'green' : 'blue') }}>{formMessage.text}</p>)}
+      <button type="submit" style={styles.submitButton} disabled={isLoading}>{isLoading ? 'Submitting...' : 'Apply for Leave'}</button>
+    </form>
+  );
+
+
   return (
     <div style={styles.pageContainer}>
       <h1 style={styles.pageTitle}>Leave Management</h1>
 
-      {/* Section for Leave Application Form */}
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Apply for Leave</h2>
-        <form onSubmit={handleFormSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label htmlFor="leaveType" style={styles.label}>Leave Type:</label>
-            <select
-              id="leaveType"
-              value={leaveType}
-              onChange={(e) => setLeaveType(e.target.value)}
-              required
-              style={styles.input}
-            >
-              <option value="">-- Select Leave Type --</option>
-              {availableLeaveTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-
-          <div style={styles.formRow}>
-            <div style={{...styles.formGroup, ...styles.formGroupHalf}}>
-              <label htmlFor="startDate" style={styles.label}>Start Date:</label>
-              <input
-                type="date"
-                id="startDate"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                required
-                style={styles.input}
-              />
-            </div>
-            <div style={{...styles.formGroup, ...styles.formGroupHalf}}>
-              <label htmlFor="endDate" style={styles.label}>End Date:</label>
-              <input
-                type="date"
-                id="endDate"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                required
-                style={styles.input}
-              />
-            </div>
-          </div>
-
-          <div style={styles.formGroup}>
-            <label htmlFor="reason" style={styles.label}>Reason:</label>
-            <textarea
-              id="reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              required
-              rows="4"
-              style={{...styles.input, ...styles.textarea}}
-            />
-          </div>
-
-          {formMessage.text && (
-            <p style={{
-              ...styles.message,
-              color: formMessage.type === 'error' ? 'red' : (formMessage.type === 'success' ? 'green' : 'blue')
-            }}>
-              {formMessage.text}
-            </p>
-          )}
-
-          <button type="submit" style={styles.submitButton} disabled={isLoading}>
-            {isLoading ? 'Submitting...' : 'Apply for Leave'}
-          </button>
-        </form>
-      </section>
-
-      {/* Section for Leave Balances */}
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>My Leave Balances</h2>
+      {/* Top Section: Leave Balance Summary Cards */}
+      <section style={{...styles.section, ...styles.balanceSummaryContainerStyle}}>
         {leaveBalances.length > 0 ? (
-          <div style={styles.balancesContainer}>
-            {leaveBalances.map(balance => (
-              <div key={balance.type} style={styles.balanceItem}>
-                <span style={styles.balanceType}>{balance.type}:</span>
-                <span style={styles.balanceValue}>{balance.balance} / {balance.total} days</span>
-              </div>
-            ))}
-          </div>
+          leaveBalances.map(balance => (
+            <LeaveBalanceCard
+              key={balance.type}
+              type={balance.type + ' Leave'} // e.g., "Annual Leave"
+              available={balance.balance}
+              total={balance.total}
+              // icon={getIconForLeaveType(balance.type)} // Placeholder for icon logic
+              // cardColor={getColorForLeaveType(balance.type)} // Placeholder for color logic
+            />
+          ))
         ) : (
-          <p>No leave balances found or still loading...</p>
+          <p>Loading balances or no balances found...</p>
         )}
       </section>
 
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>My Leave History</h2>
-        {leaveHistory.length > 0 ? (
-          <div style={styles.historyTableContainer}>
-            <table style={styles.historyTable}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>ID</th>
-                  <th style={styles.th}>Type</th>
-                  <th style={styles.th}>Dates</th>
-                  <th style={styles.th}>Days</th>
-                  <th style={styles.th}>Reason</th>
-                  <th style={styles.th}>Status</th>
-                  <th style={styles.th}>Applied On</th>
-                  <th style={styles.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaveHistory.map(item => (
-                  <tr key={item.id}>
-                    <td style={styles.td}>{item.id}</td>
-                    <td style={styles.td}>{item.type}</td>
-                    <td style={styles.td}>{item.startDate} to {item.endDate}</td>
-                    <td style={styles.td}>{item.days}</td>
-                    <td style={styles.td}><span style={styles.reasonText}>{item.reason}</span></td>
-                    <td style={styles.td}>
-                      <span style={{...styles.statusBadge, ...styles[item.status?.toLowerCase()]}}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td style={styles.td}>{item.appliedOn || 'N/A'}</td>
-                    <td style={styles.td}>
-                      {item.status === 'Pending' && (
-                        <button
-                          onClick={() => handleCancelLeave(item.id)}
-                          style={styles.cancelButton}
-                          disabled={isLoading} // Disable if another operation is in progress
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Action Button Section */}
+      <section style={{...styles.section, ...styles.applyButtonContainer}}>
+        <button onClick={() => setShowLeaveFormModal(true)} style={styles.applyLeaveButton}>
+          Apply for Leave
+        </button>
+      </section>
+
+      {/* TODO: Implement Modal for Leave Application Form */}
+      {showLeaveFormModal && (
+        <div style={styles.modalBackdrop}>
+          <div style={styles.modalContent}>
+            <button onClick={() => setShowLeaveFormModal(false)} style={styles.closeModalButton}>&times;</button>
+            <h2 style={styles.sectionTitle}>Apply for Leave</h2>
+            {renderLeaveApplicationForm()}
+            {/* <button onClick={() => setShowLeaveFormModal(false)} style={styles.cancelFormButton}>Cancel</button> // Alternative to close button */}
           </div>
-        ) : (
-          <p>No leave history found or still loading...</p>
-        )}
+        </div>
+      )}
+
+      {/* Tabbed Interface Section */}
+      <section style={styles.section}>
+        <div style={styles.tabsHeader}>
+          <button
+            style={activeTab === 'history' ? {...styles.tabButton, ...styles.activeTab} : styles.tabButton}
+            onClick={() => setActiveTab('history')}>
+            Leave History
+          </button>
+          <button
+            style={activeTab === 'calendar' ? {...styles.tabButton, ...styles.activeTab} : styles.tabButton}
+            onClick={() => setActiveTab('calendar')}>
+            Holiday Calendar
+          </button>
+        </div>
+
+        <div style={styles.tabContent}>
+          {activeTab === 'history' && (
+            <div>
+              {/* Existing Leave History Table JSX */}
+              {leaveHistory.length > 0 ? (
+                <div style={styles.historyTableContainer}>
+                  <table style={styles.historyTable}>
+                    <thead><tr><th style={styles.th}>ID</th><th style={styles.th}>Type</th><th style={styles.th}>Dates</th><th style={styles.th}>Days</th><th style={styles.th}>Reason</th><th style={styles.th}>Status</th><th style={styles.th}>Applied On</th><th style={styles.th}>Actions</th></tr></thead>
+                    <tbody>
+                      {leaveHistory.map(item => (
+                        <tr key={item.id}><td style={styles.td}>{item.id}</td><td style={styles.td}>{item.type}</td><td style={styles.td}>{item.startDate} to {item.endDate}</td><td style={styles.td}>{item.days}</td><td style={styles.td}><span style={styles.reasonText}>{item.reason}</span></td><td style={styles.td}><span style={{...styles.statusBadge, ...styles[item.status?.toLowerCase()]}}>{item.status}</span></td><td style={styles.td}>{item.appliedOn || 'N/A'}</td><td style={styles.td}>{item.status === 'Pending' && (<button onClick={() => handleCancelLeave(item.id)} style={styles.cancelButton} disabled={isLoading}>Cancel</button>)}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (<p>No leave history found or still loading...</p>)}
+            </div>
+          )}
+          {activeTab === 'calendar' && (
+            <div>
+              {holidaysList.length > 0 ? (
+                <ul style={styles.holidayList}>
+                  {holidaysList.map(holiday => (
+                    <li key={holiday.date} style={styles.holidayItem}>
+                      <span style={styles.holidayDate}>{new Date(holiday.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}:</span>
+                      <span style={styles.holidayName}>{holiday.name}</span>
+                      <span style={styles.holidayTypeBadge}>{holiday.type}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Loading holidays or no holidays to display.</p>
+              )}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
@@ -347,8 +330,87 @@ const styles = {
     fontWeight: 'bold',
     color: '#007bff',
   },
+  // Styles for new layout
+  balanceSummaryContainerStyle: {
+    display: 'flex',
+    gap: '20px', // Space between cards
+    justifyContent: 'space-around', // Or 'flex-start'
+    flexWrap: 'wrap', // Allow cards to wrap on smaller screens
+    marginBottom: '25px',
+  },
+  applyButtonContainer: {
+    marginBottom: '25px',
+    textAlign: 'right', // As per one common interpretation of such layouts
+  },
+  applyLeaveButton: {
+    padding: '10px 20px',
+    backgroundColor: '#007bff',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '1em',
+    fontWeight: '500',
+  },
+  modalBackdrop: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000, // Ensure modal is on top
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: '25px 30px',
+    borderRadius: '8px',
+    boxShadow: '0 5px 15px rgba(0,0,0,0.2)',
+    width: '100%',
+    maxWidth: '500px', // Max width for the modal
+    position: 'relative', // For close button positioning
+  },
+  closeModalButton: {
+    position: 'absolute',
+    top: '10px',
+    right: '15px',
+    background: 'transparent',
+    border: 'none',
+    fontSize: '1.5em',
+    cursor: 'pointer',
+    padding: '5px',
+    lineHeight: '1',
+  },
+  tabsHeader: {
+    display: 'flex',
+    marginBottom: '0px', // Remove margin if border is on section
+    borderBottom: '1px solid #dee2e6', // Bottom border for the tab header area
+  },
+  tabButton: {
+    padding: '10px 15px',
+    marginRight: '5px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+    fontSize: '1em',
+    color: '#495057',
+    borderBottom: '3px solid transparent', // For active indicator
+    marginBottom: '-1px', // Align with the section's bottom border
+  },
+  activeTab: {
+    color: '#007bff',
+    fontWeight: '600',
+    borderBottom: '3px solid #007bff',
+  },
+  tabContent: {
+    paddingTop: '20px', // Space above tab content
+  },
+  // History table styles remain relevant
   historyTableContainer: {
-    overflowX: 'auto', // For responsive table
+    overflowX: 'auto',
   },
   historyTable: {
     width: '100%',
@@ -407,7 +469,38 @@ const styles = {
     cursor: 'pointer',
     fontSize: '0.85em',
   },
-  // cancelButtonHover: { backgroundColor: '#c82333' },
+  // Styles for Holiday Calendar tab
+  holidayList: {
+    listStyle: 'none',
+    padding: 0,
+  },
+  holidayItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 0',
+    borderBottom: '1px solid #f0f0f0',
+  },
+  holidayDate: {
+    fontWeight: '500',
+    color: '#333',
+    minWidth: '150px', // Ensure date alignment
+  },
+  holidayName: {
+    flexGrow: 1,
+    color: '#555',
+    marginLeft: '15px',
+  },
+  holidayTypeBadge: {
+    padding: '3px 7px',
+    borderRadius: '10px',
+    fontSize: '0.75em',
+    fontWeight: '500',
+    backgroundColor: '#e9ecef',
+    color: '#495057',
+    marginLeft: '15px',
+    whiteSpace: 'nowrap',
+  }
 };
 
 export default LeavePage;
