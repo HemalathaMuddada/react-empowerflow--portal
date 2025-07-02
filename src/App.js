@@ -83,7 +83,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to={roleDashboardMap[user.role] || '/'} replace />;
   }
 
-  return children;
+  // Apply DashboardLayout to authenticated, authorized children
+  return <DashboardLayout>{children}</DashboardLayout>;
 };
 
 

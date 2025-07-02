@@ -1,11 +1,15 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react'; // Added useState
+import { useNavigate, Link, useLocation } from 'react-router-dom'; // Added useLocation
 import { useAuth } from '../contexts/AuthContext';
 import Logo from './Logo'; // Re-use logo if desired
 
 const DashboardLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); // Get current location
+
+  // State for hover effects - an object to store hover state per item path
+  const [hoveredPath, setHoveredPath] = useState(null);
 
   // Voice synthesis for logout (can be kept or removed based on preference for this layout)
   const speakLogoutMessage = (gender) => {
@@ -38,10 +42,10 @@ const DashboardLayout = ({ children }) => {
 
   // Sidebar navigation items
   const navItems = [
-    { name: 'Dashboard', path: '/employee-dashboard', icon: '🏠' }, // Simple emoji icons for now
+    { name: 'Dashboard', path: '/employee-dashboard', icon: '🏠' },
     { name: 'Leave', path: '/leave', icon: '✈️' },
     { name: 'Payslips', path: '/payslips', icon: '💰' },
-    { name: 'Attendance', path: '/attendance', icon: ' clocked_face' }, // clock emoji might not render well, use text or better icon
+    { name: 'Attendance', path: '/attendance', icon: '⏰' }, // Changed icon
     { name: 'Tasks', path: '/tasks', icon: '📋' },
     { name: 'Documents', path: '/documents', icon: '📄' },
     { name: 'Helpdesk', path: '/helpdesk', icon: '❓' },
@@ -55,15 +59,28 @@ const DashboardLayout = ({ children }) => {
           {/* Or <Logo /> component if you have a smaller version */}
         </div>
         <nav style={styles.sidebarNav}>
-          <ul>
-            {navItems.map(item => (
-              <li key={item.name} style={styles.navItem}>
-                <Link to={item.path} style={styles.navLink}>
-                  <span style={styles.navIcon}>{item.icon}</span>
-                  {item.name}
-                </Link>
-              </li>
-            ))}
+          <ul style={styles.sidebarNav_ul}> {/* Applied style here */}
+            {navItems.map(item => {
+              const isActive = location.pathname === item.path || (item.path !== '/employee-dashboard' && location.pathname.startsWith(item.path) && item.path !== '/'); // Basic active check, can be more sophisticated
+              const linkStyle = {
+                ...styles.navLink,
+                ...(isActive && styles.navLinkActive),
+                ...(hoveredPath === item.path && styles.navLinkHover),
+              };
+              return (
+                <li key={item.name} style={styles.navItem}>
+                  <Link
+                    to={item.path}
+                    style={linkStyle}
+                    onMouseEnter={() => setHoveredPath(item.path)}
+                    onMouseLeave={() => setHoveredPath(null)}
+                  >
+                    <span style={styles.navIcon}>{item.icon}</span>
+                    {item.name}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
         <div style={styles.sidebarFooter}>
@@ -141,8 +158,18 @@ const styles = {
     textDecoration: 'none',
     fontSize: '1em',
     transition: 'background-color 0.2s ease, color 0.2s ease',
+    borderLeft: '3px solid transparent', // For active indicator
   },
-  // navLinkHover: { backgroundColor: '#34495e', color: '#ffffff' }, // Handle with CSS or onMouseEnter/Leave
+  navLinkActive: {
+    color: '#ffffff', // White text for active link
+    backgroundColor: '#34495e', // Slightly darker background for active link
+    fontWeight: '600',
+    borderLeft: '3px solid #1abc9c', // Accent color border for active link
+  },
+  navLinkHover: {
+    backgroundColor: '#34495e', // Same as active for this theme, or slightly different
+    color: '#ffffff',
+  },
   navIcon: {
     marginRight: '12px',
     fontSize: '1.2em', // Icon size
