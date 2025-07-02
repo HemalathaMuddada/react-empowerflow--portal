@@ -7,8 +7,50 @@ const DashboardLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const speakLogoutMessage = (gender) => {
+    if ('speechSynthesis' in window) {
+      const message = "You have logged out successfully.";
+      const utterance = new SpeechSynthesisUtterance(message);
+      const voices = window.speechSynthesis.getVoices();
+      let selectedVoice = null;
+      const lang = 'en-US';
+
+      if (gender === 'female') {
+        selectedVoice = voices.find(voice => voice.lang === lang && (voice.name.toLowerCase().includes('female') || /zira|susan|linda|heather|joanna/i.test(voice.name)));
+      } else if (gender === 'male') {
+        selectedVoice = voices.find(voice => voice.lang === lang && (voice.name.toLowerCase().includes('male') || /david|mark|tom|george/i.test(voice.name)));
+      }
+
+      if (!selectedVoice) selectedVoice = voices.find(voice => voice.lang === lang);
+      if (!selectedVoice) selectedVoice = voices.find(voice => voice.lang.startsWith('en')) || (voices.length > 0 ? voices[0] : null);
+
+      if (selectedVoice) utterance.voice = selectedVoice;
+
+      if (speechSynthesis.onvoiceschanged !== undefined && voices.length === 0) {
+        speechSynthesis.onvoiceschanged = () => {
+          const updatedVoices = window.speechSynthesis.getVoices();
+          if (gender === 'female') {
+            selectedVoice = updatedVoices.find(voice => voice.lang === lang && (voice.name.toLowerCase().includes('female') || /zira|susan|linda|heather|joanna/i.test(voice.name)));
+          } else if (gender === 'male') {
+            selectedVoice = updatedVoices.find(voice => voice.lang === lang && (voice.name.toLowerCase().includes('male') || /david|mark|tom|george/i.test(voice.name)));
+          }
+          if (!selectedVoice) selectedVoice = updatedVoices.find(voice => voice.lang === lang);
+          if (!selectedVoice) selectedVoice = updatedVoices.find(voice => voice.lang.startsWith('en')) || (updatedVoices.length > 0 ? updatedVoices[0] : null);
+          if (selectedVoice) utterance.voice = selectedVoice;
+          window.speechSynthesis.speak(utterance);
+        };
+      } else {
+        window.speechSynthesis.speak(utterance);
+      }
+    } else {
+      console.warn('Speech synthesis not supported for logout message.');
+    }
+  };
+
   const handleLogout = async () => {
+    const userGender = user?.gender || 'neutral'; // Get gender before user object is cleared
     await logout();
+    speakLogoutMessage(userGender); // Speak message after logout action
     navigate('/'); // Redirect to login page
   };
 

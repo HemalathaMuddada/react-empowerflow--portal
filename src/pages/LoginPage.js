@@ -29,11 +29,65 @@ const LoginPage = () => {
     navigate(roleDashboardMap[role] || '/employee-dashboard');
   };
 
-  const speakGreeting = (name) => {
+  const speakGreeting = (name, gender) => {
     if ('speechSynthesis' in window) {
       const greeting = `Good ${getGreetingTime()}, ${name}, you have successfully logged into the portal.`;
       const utterance = new SpeechSynthesisUtterance(greeting);
-      window.speechSynthesis.speak(utterance);
+
+      const voices = window.speechSynthesis.getVoices();
+      let selectedVoice = null;
+
+      // Enhanced voice selection logic:
+      // Prioritize voices that explicitly state gender or are common for that gender and language.
+      const lang = 'en-US'; // Target language
+
+      if (gender === 'female') {
+        selectedVoice = voices.find(voice =>
+          voice.lang === lang &&
+          (voice.name.toLowerCase().includes('female') || /zira|susan|linda|heather|joanna/i.test(voice.name))
+        );
+      } else if (gender === 'male') {
+        selectedVoice = voices.find(voice =>
+          voice.lang === lang &&
+          (voice.name.toLowerCase().includes('male') || /david|mark|tom|george/i.test(voice.name))
+        );
+      }
+
+      // Fallback if no gender-specific voice found for the target language
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => voice.lang === lang);
+      }
+      // Further fallback to any English voice or the first available voice
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => voice.lang.startsWith('en')) || (voices.length > 0 ? voices[0] : null);
+      }
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+
+      // Handle asynchronous voice loading in some browsers
+      if (speechSynthesis.onvoiceschanged !== undefined && voices.length === 0) {
+        speechSynthesis.onvoiceschanged = () => {
+          // Re-run voice selection logic when voices are loaded
+          const updatedVoices = window.speechSynthesis.getVoices();
+          // (Repeat similar selection logic as above with updatedVoices)
+          // For brevity here, we'll just try a simple re-selection:
+          if (gender === 'female') {
+            selectedVoice = updatedVoices.find(voice => voice.lang === lang && (voice.name.toLowerCase().includes('female') || /zira|susan|linda|heather|joanna/i.test(voice.name)));
+          } else if (gender === 'male') {
+            selectedVoice = updatedVoices.find(voice => voice.lang === lang && (voice.name.toLowerCase().includes('male') || /david|mark|tom|george/i.test(voice.name)));
+          }
+          if (!selectedVoice) selectedVoice = updatedVoices.find(voice => voice.lang === lang);
+          if (!selectedVoice) selectedVoice = updatedVoices.find(voice => voice.lang.startsWith('en')) || (updatedVoices.length > 0 ? updatedVoices[0] : null);
+
+          if (selectedVoice) utterance.voice = selectedVoice;
+          window.speechSynthesis.speak(utterance);
+        };
+      } else {
+        window.speechSynthesis.speak(utterance);
+      }
+
     } else {
       console.warn('Speech synthesis not supported in this browser.');
     }
@@ -54,7 +108,7 @@ const LoginPage = () => {
       const loggedInUser = await login(email, password);
       if (loggedInUser) {
         console.log("Remember Me:", rememberMe);
-        speakGreeting(loggedInUser.name);
+        speakGreeting(loggedInUser.name, loggedInUser.gender); // Pass gender to speakGreeting
       }
     } catch (err) { // Added missing opening brace
       setError(err.message || 'Failed to login. Please check your credentials.');
