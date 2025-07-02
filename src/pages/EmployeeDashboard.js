@@ -21,9 +21,17 @@ const EmployeeDashboard = () => {
   const [attendanceRegData, setAttendanceRegData] = useState({ value: 'Loading...' });
   const [performanceData, setPerformanceData] = useState({ value: 'Loading...' });
   const [payslipData, setPayslipData] = useState({ value: 'Loading...' });
+  const [areCardsVisible, setAreCardsVisible] = useState(false); // State for load-in animation
 
   useEffect(() => {
     if (user?.email) {
+      // Simulate a slight delay for the animation to be noticeable after data starts loading
+      // or tie it to the completion of all/most fetches.
+      // For simplicity, a timeout after component mounts and user is available.
+      const timer = setTimeout(() => {
+        setAreCardsVisible(true);
+      }, 100); // Short delay to trigger transition
+
       // Fetch Upcoming Holiday
       getUpcomingHolidays(1).then(holidays => {
         if (holidays.length > 0) {
@@ -63,6 +71,7 @@ const EmployeeDashboard = () => {
         setPayslipData({ value: status, description: 'Latest available' });
       }).catch(() => setPayslipData({ value: 'N/A', description: 'Error fetching' }));
     }
+    return () => clearTimeout(timer); // Cleanup timer
   }, [user]);
 
   // Structure for KPI cards, now using state
@@ -71,37 +80,43 @@ const EmployeeDashboard = () => {
       title: 'Upcoming Holiday',
       data: upcomingHolidayData,
       icon: '🎉',
-      linkTo: '/holidays'
+      linkTo: '/holidays',
+      cardColor: '#5D9CEC' // Soft Blue
     },
     {
       title: 'Leave Balance',
       data: leaveBalanceData,
       icon: '✈️',
-      linkTo: '/leave'
+      linkTo: '/leave',
+      cardColor: '#48CFAD' // Seafoam Green
     },
     {
       title: 'Pending Tasks',
       data: pendingTasksData,
       icon: '📋',
-      linkTo: '/tasks'
+      linkTo: '/tasks',
+      cardColor: '#FFCE54' // Amber
     },
     {
       title: 'Attendance Regularizations',
       data: attendanceRegData,
       icon: '⏱️',
-      linkTo: '/attendance' // Link to main attendance page or specific section
+      linkTo: '/attendance',
+      cardColor: '#AC92EC' // Purple/Lavender
     },
     {
       title: 'Performance Review',
       data: performanceData,
       icon: '📈',
-      linkTo: '/performance' // Placeholder for a potential performance page
+      linkTo: '/performance',
+      cardColor: '#ED5565' // Ruby Red
     },
     {
       title: 'Recent Payslips',
       data: payslipData,
       icon: '💰',
-      linkTo: '/payslips'
+      linkTo: '/payslips',
+      cardColor: '#4A89DC' // Stronger Blue
     },
   ];
 
@@ -122,6 +137,8 @@ const EmployeeDashboard = () => {
             icon={kpi.icon}
             description={kpi.data.description || (kpi.data.value !== 'Loading...' && kpi.data.value !== 'N/A' ? `${kpi.data.value} ${kpi.data.unit || ''}` : 'View details')}
             linkTo={kpi.linkTo}
+            cardColor={kpi.cardColor}
+            isVisible={areCardsVisible} // Pass visibility state
           />
         ))}
       </div>

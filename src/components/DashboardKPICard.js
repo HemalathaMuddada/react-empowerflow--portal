@@ -1,18 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // Import useState and useEffect
 import { Link } from 'react-router-dom'; // Optional: if cards link to other pages
 
-const DashboardKPICard = ({ title, value, unit, icon, description, linkTo, cardColor }) => {
-  const cardStyle = {
-    backgroundColor: cardColor || '#ffffff', // Default to white, can be themed
+const DashboardKPICard = ({ title, value, unit, icon, description, linkTo, cardColor, isVisible }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  // Local visibility state for staggering if needed, but parent control is simpler for now
+  // const [hasBecomeVisible, setHasBecomeVisible] = useState(false);
+
+  // useEffect(() => {
+  //   if (isVisible) {
+  //     setHasBecomeVisible(true);
+  //   }
+  // }, [isVisible]);
+
+  const baseCardStyle = {
+    backgroundColor: cardColor || '#ffffff',
     padding: '20px',
     borderRadius: '8px',
     boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
     display: 'flex',
     flexDirection: 'column',
-    // minHeight: '120px', // Ensure a minimum height for uniformity
-    color: cardColor ? '#ffffff' : '#333333', // Text color contrast if cardColor is set
-    position: 'relative', // For potential icon positioning or links
+    color: cardColor ? '#ffffff' : '#333333',
+    position: 'relative',
+    opacity: isVisible ? 1 : 0, // Initial state for load-in
+    transform: isVisible ? 'translateY(0)' : 'translateY(20px)', // Initial state for load-in
+    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, opacity 0.4s ease-in-out', // Added opacity and transform
   };
+
+  const hoverCardStyle = {
+    transform: 'scale(1.03)',
+    boxShadow: '0 5px 15px rgba(0,0,0,0.12)',
+  };
+
+  const cardStyle = isHovered ? { ...baseCardStyle, ...hoverCardStyle } : baseCardStyle;
 
   const headerStyle = {
     display: 'flex',
@@ -64,7 +83,11 @@ const DashboardKPICard = ({ title, value, unit, icon, description, linkTo, cardC
   // linkStyleHover: { textDecoration: 'underline' }
 
   return (
-    <div style={cardStyle}>
+    <div
+      style={cardStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div style={headerStyle}>
         {icon && <span style={iconStyle}>{icon}</span>}
         <h3 style={titleStyle}>{title}</h3>
