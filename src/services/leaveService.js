@@ -1,13 +1,18 @@
 // Dummy leave data for a user
 // In a real app, this would be fetched based on the logged-in user
-let userLeaveData = {
+let userLeaveData = { // Data for employee@example.com (Kara Thrace, female)
   balances: [
     { type: 'Annual', balance: 12, total: 20 },
     { type: 'Sick', balance: 8, total: 10 },
     { type: 'Casual', balance: 5, total: 5 },
+    { type: 'Compensatory Off', balance: 2, total: 5 }, // Earned against extra work
+    { type: 'Maternity', balance: 0, total: 180 }, // Example, might not be applicable to this specific dummy user
+    { type: 'Paternity', balance: 0, total: 15 },  // Example
+    { type: 'LOP Taken', value: 1, unit: 'days this year' }, // Different structure: just a value and unit
+    { type: 'Bereavement', balance: 3, total: 3 },
   ],
   history: [
-    { id: 'L001', type: 'Annual', startDate: '2023-11-10', endDate: '2023-11-12', days: 3, status: 'Approved', reason: 'Vacation' },
+    { id: 'L001', type: 'Annual', startDate: '2023-11-10', endDate: '2023-11-12', days: 3, status: 'Approved', reason: 'Vacation', appliedOn: '2023-11-01' },
     { id: 'L002', type: 'Sick', startDate: '2023-12-01', endDate: '2023-12-01', days: 1, status: 'Approved', reason: 'Fever' },
     { id: 'L003', type: 'Casual', startDate: '2024-01-05', endDate: '2024-01-05', days: 1, status: 'Pending', reason: 'Personal Errand' },
   ],

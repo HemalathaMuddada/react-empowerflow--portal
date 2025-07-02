@@ -67,9 +67,11 @@ const LeaveBalanceCard = ({ type, available, total, icon }) => { // Removed card
       </div>
       <div style={balanceDetailsStyle}>
         <div style={availableValueStyle}>{available}</div>
-        <div style={availableTextStyle}>Available</div>
+        {/* Conditionally show "Available" or the unit for LOP */}
+        <div style={availableTextStyle}>{unit ? unit : 'Available'}</div>
       </div>
-      <div style={totalTextStyle}>Total: {total} Days</div>
+      {/* Conditionally show "Total" if it exists, otherwise it's handled by unit */}
+      {total !== undefined && !unit && <div style={totalTextStyle}>Total: {total} Days</div>}
     </div>
   );
 };

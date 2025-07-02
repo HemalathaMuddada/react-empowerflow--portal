@@ -152,18 +152,36 @@ const LeavePage = () => {
 
   return (
     <div style={styles.pageContainer}>
-      <h1 style={styles.pageTitle}>Leave Management</h1>
+      <div style={styles.topActionRow}>
+        <h1 style={{...styles.pageTitle, marginBottom: '0', marginRight: 'auto' }}>Leave Management</h1> {/* Title on left */}
+        <div style={styles.filtersAndActions}>
+          {/* Placeholder for Year Filter */}
+          <select style={{...styles.input, ...styles.yearFilter}}>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+          </select>
+          {/* Placeholder for Download Button */}
+          <button style={{...styles.actionButton, marginLeft: '10px'}} onClick={() => console.log('Download clicked')}>Download</button>
+          <button onClick={() => setShowLeaveFormModal(true)} style={{...styles.applyLeaveButton, marginLeft: '10px'}}>
+            Apply for Leave
+          </button>
+        </div>
+      </div>
 
       {/* Top Section: Leave Balance Summary Cards */}
-      <section style={{...styles.section, ...styles.balanceSummaryContainerStyle}}>
+      <section style={{...styles.section, ...styles.balanceSummaryContainerStyle, marginTop: '20px' }}>
         {leaveBalances.length > 0 ? (
           leaveBalances.map(balance => (
             <LeaveBalanceCard
               key={balance.type}
-              type={balance.type + ' Leave'}
-              available={balance.balance}
+              type={balance.type} // Pass raw type, card can append "Leave" if needed
+              available={balance.balance !== undefined ? balance.balance : balance.value} // Handle LOP structure
               total={balance.total}
-              icon={balance.type === 'Annual' ? '🏖️' : balance.type === 'Sick' ? '🤒' : balance.type === 'Casual' ? '🚶' : '📄'} // Assign basic icons
+              unit={balance.unit} // For LOP
+              icon={balance.type === 'Annual' ? '🏖️' : balance.type === 'Sick' ? '🤒' : balance.type === 'Casual' ? '🚶' :
+                    balance.type === 'Compensatory Off' ? '➕': balance.type === 'Maternity' ? '🤰':
+                    balance.type === 'Paternity' ? '👨‍🍼': balance.type === 'LOP Taken' ? '📉':
+                    balance.type === 'Bereavement' ? '🖤' : '📄'}
             />
           ))
         ) : (
@@ -171,14 +189,7 @@ const LeavePage = () => {
         )}
       </section>
 
-      {/* Action Button Section */}
-      <section style={{...styles.section, ...styles.applyButtonContainer}}>
-        <button onClick={() => setShowLeaveFormModal(true)} style={styles.applyLeaveButton}>
-          Apply for Leave
-        </button>
-      </section>
-
-      {/* TODO: Implement Modal for Leave Application Form */}
+      {/* Modal for Leave Application Form */}
       {showLeaveFormModal && (
         <div style={styles.modalBackdrop}>
           <div style={styles.modalContent}>
@@ -349,18 +360,48 @@ const styles = {
   },
   // Styles for new layout
   balanceSummaryContainerStyle: {
+    display: 'grid', // Changed to grid
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', // Responsive grid for cards
+    // For a fixed number of columns, e.g., 4:
+    // gridTemplateColumns: 'repeat(4, 1fr)',
+    // To match image which seems to have 3 cards per row and then wraps:
+    // gridTemplateColumns: 'repeat(3, 1fr)', // This might be too rigid if less than 3 cards.
+    // auto-fit with minmax is generally more flexible for varying numbers of cards.
+    // The image seems to have wider cards than 200px if only 3 are shown. Let's try minmax(240px, 1fr).
+    // gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: '20px',
+    marginBottom: '25px',
+  },
+  topActionRow: {
     display: 'flex',
-    gap: '20px', // Space between cards
-    justifyContent: 'space-around', // Or 'flex-start'
-    flexWrap: 'wrap', // Allow cards to wrap on smaller screens
-    marginBottom: '25px',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
   },
-  applyButtonContainer: {
-    marginBottom: '25px',
-    textAlign: 'right', // As per one common interpretation of such layouts
+  filtersAndActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
   },
-  applyLeaveButton: {
-    padding: '10px 20px',
+  yearFilter: { // Style for the year filter select
+    padding: '8px 10px', // Adjust padding to match buttons
+    height: 'auto', // Ensure height consistency if needed
+    minWidth: '100px',
+    // Inherits other input styles which is good
+  },
+  actionButton: { // Generic style for buttons like Download
+    padding: '8px 15px',
+    backgroundColor: '#6c757d', // Secondary button color
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '0.9em', // Slightly smaller than primary apply button
+    fontWeight: '500',
+  },
+  // applyButtonContainer style removed as button is now in topActionRow
+  applyLeaveButton: { // Style might need slight adjustment if it was too large before
+    padding: '8px 15px', // Standardized padding with other action buttons
     backgroundColor: '#007bff',
     color: 'white',
     border: 'none',
