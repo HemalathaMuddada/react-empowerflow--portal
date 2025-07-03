@@ -7,7 +7,23 @@ import LeadDashboard from './pages/LeadDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import HRDashboard from './pages/HRDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
-import EmployeeDashboard from './pages/EmployeeDashboard';
+import EmployeeDashboard from './pages/EmployeeDashboard'; // Corrected path
+import DashboardLayout from './components/DashboardLayout'; // Added import for DashboardLayout
+
+// New placeholder pages for sidebar navigation
+import LeavePage from './pages/LeavePage';
+import PayslipsPage from './pages/PayslipsPage';
+import AttendancePage from './pages/AttendancePage';
+import TasksPage from './pages/TasksPage';
+import DocumentsPage from './pages/DocumentsPage';
+import HelpdeskPage from './pages/HelpdeskPage';
+
+// Specific Leave Module Pages
+import LeaveBalancesPage from './pages/LeaveBalancesPage';
+import LeaveHistoryPage from './pages/LeaveHistoryPage';
+import MyLeaveCalendarPage from './pages/MyLeaveCalendarPage';
+import CompanyHolidayCalendarPage from './pages/CompanyHolidayCalendarPage';
+
 
 // Placeholder components for unimplemented pages
 // const PlaceholderComponent = ({ pageName, additionalInfo = "" }) => { // No longer needed for these pages
@@ -75,7 +91,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to={roleDashboardMap[user.role] || '/'} replace />;
   }
 
-  return children;
+  // Apply DashboardLayout to authenticated, authorized children
+  return <DashboardLayout>{children}</DashboardLayout>;
 };
 
 
@@ -128,6 +145,21 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Routes for new sidebar pages */}
+          {/* Leave Module Routes - LeavePage is now effectively ApplyLeavePage and default for /leave */}
+          <Route path="/leave" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} />
+          <Route path="/leave/apply" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} />
+          <Route path="/leave/balances" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeaveBalancesPage /></ProtectedRoute>} />
+          <Route path="/leave/history" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeaveHistoryPage /></ProtectedRoute>} />
+          <Route path="/leave/my-calendar" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><MyLeaveCalendarPage /></ProtectedRoute>} />
+          <Route path="/leave/holidays" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><CompanyHolidayCalendarPage /></ProtectedRoute>} />
+
+          <Route path="/payslips" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><PayslipsPage /></ProtectedRoute>} />
+          <Route path="/attendance" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><AttendancePage /></ProtectedRoute>} />
+          <Route path="/tasks" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><TasksPage /></ProtectedRoute>} />
+          <Route path="/documents" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><DocumentsPage /></ProtectedRoute>} />
+          <Route path="/helpdesk" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><HelpdeskPage /></ProtectedRoute>} />
 
           {/* Fallback route for any unmatched paths - redirect to login or user's dashboard if logged in */}
           <Route path="*" element={<FallbackNavigate />} />
