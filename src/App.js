@@ -21,8 +21,9 @@ import HelpdeskPage from './pages/HelpdeskPage';
 // Specific Leave Module Pages
 import LeaveBalancesPage from './pages/LeaveBalancesPage';
 import LeaveHistoryPage from './pages/LeaveHistoryPage';
-import MyLeaveCalendarPage from './pages/MyLeaveCalendarPage';
+import MyLeaveCalendarPage from './pages/MyLeaveCalendarPage'; // This is now MyLeaveCalendarWidget
 import CompanyHolidayCalendarPage from './pages/CompanyHolidayCalendarPage';
+import LeaveOverviewPage from './pages/LeaveOverviewPage'; // <-- Import the new page
 
 
 // Placeholder components for unimplemented pages
@@ -152,8 +153,9 @@ function App() {
           <Route path="/leave/apply" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeavePage /></ProtectedRoute>} />
           <Route path="/leave/balances" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeaveBalancesPage /></ProtectedRoute>} />
           <Route path="/leave/history" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeaveHistoryPage /></ProtectedRoute>} />
-          <Route path="/leave/my-calendar" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><MyLeaveCalendarPage /></ProtectedRoute>} />
+          <Route path="/leave/my-calendar" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><MyLeaveCalendarPage /></ProtectedRoute>} /> {/* This now renders MyLeaveCalendarWidget as a full page */}
           <Route path="/leave/holidays" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><CompanyHolidayCalendarPage /></ProtectedRoute>} />
+          <Route path="/leave/overview" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><LeaveOverviewPage /></ProtectedRoute>} /> {/* <-- Add route for the new overview page */}
 
           <Route path="/payslips" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><PayslipsPage /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute allowedRoles={['employee', 'lead', 'manager', 'hr', 'superadmin']}><AttendancePage /></ProtectedRoute>} />
