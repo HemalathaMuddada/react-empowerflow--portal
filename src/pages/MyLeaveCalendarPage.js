@@ -3,13 +3,15 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { getLeaveHistory } from '../services/leaveService';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+// import './MyLeaveCalendarPage.css'; // We would create and use this for deeper styling
 
 const localizer = momentLocalizer(moment);
 
-const MyLeaveCalendarPage = () => {
+const MyLeaveCalendarWidget = () => { // Renamed component for clarity if used as a widget
   const [myEventsList, setMyEventsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date()); // To control the displayed month
 
   useEffect(() => {
     const fetchLeaves = async () => {
@@ -18,60 +20,103 @@ const MyLeaveCalendarPage = () => {
         setError(null);
         const leaveHistory = await getLeaveHistory();
         const events = leaveHistory
-          .filter(leave => leave.status === 'Approved' || leave.status === 'Pending') // Show approved and pending
+          .filter(leave => leave.status === 'Approved' || leave.status === 'Pending')
           .map(leave => {
-            // Adjust end date for full-day events to be inclusive in calendar display
-            // BigCalendar's default for 'end' is exclusive.
             const endDate = moment(leave.endDate).add(1, 'day').toDate();
             return {
               id: leave.id,
-              title: `${leave.type} (${leave.status})`,
+              title: leave.type, // Simpler title for the calendar view as per image
               start: new Date(leave.startDate),
-              end: endDate, // Use adjusted end date
-              allDay: true, // Assuming all leaves are full day events for now
-              resource: leave, // Store original leave object if needed
+              end: endDate,
+              allDay: true,
+              resource: leave,
             };
           });
         setMyEventsList(events);
       } catch (err) {
         console.error("Failed to fetch leave history for calendar:", err);
-        setError('Failed to load leave data. Please try again later.');
+        setError('Failed to load leave data.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchLeaves();
   }, []);
 
   const eventStyleGetter = (event, start, end, isSelected) => {
-    let backgroundColor = '#3174ad'; // Default blue
+    let backgroundColor = '#3174ad'; // Default
+    let borderColor = '#3174ad';
+
     if (event.resource) {
       switch (event.resource.status) {
         case 'Approved':
-          backgroundColor = '#5cb85c'; // Green
+          backgroundColor = 'rgba(76, 175, 80, 0.1)'; // Light green background (image-like)
+          borderColor = '#4CAF50'; // Green border
           break;
         case 'Pending':
-          backgroundColor = '#f0ad4e'; // Orange
+          backgroundColor = 'rgba(255, 152, 0, 0.1)'; // Light orange background
+          borderColor = '#FF9800'; // Orange border
           break;
         default:
-          backgroundColor = '#777'; // Grey for other statuses
+          backgroundColor = 'rgba(158, 158, 158, 0.1)'; // Light grey
+          borderColor = '#9E9E9E'; // Grey border
       }
     }
     const style = {
       backgroundColor,
-      borderRadius: '5px',
-      opacity: 0.8,
-      color: 'white',
-      border: '0px',
+      borderRadius: '4px', // Slightly rounded corners for events
+      opacity: 1,
+      color: borderColor, // Text color same as border for better visibility
+      border: `1px solid ${borderColor}`,
+      borderLeft: `3px solid ${borderColor}`, // Prominent left border
       display: 'block',
-      padding: '2px 5px',
-      fontSize: '0.85em'
+      padding: '3px 5px',
+      fontSize: '0.75em', // Smaller font size for events in month view
+      fontWeight: '500',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
     };
     return {
-      style: style
+      style: style,
     };
   };
+
+  // Custom Toolbar to match the image's look and feel for navigation
+  const CustomToolbar = (toolbar) => {
+    const goToBack = () => {
+      toolbar.onNavigate('PREV');
+    };
+    const goToNext = () => {
+      toolbar.onNavigate('NEXT');
+    };
+    const goToCurrent = () => {
+      toolbar.onNavigate('TODAY');
+    };
+    const label = () => {
+      const date = moment(toolbar.date);
+      return (
+        <span style={styles.toolbarLabel}>
+          {date.format('MMMM YYYY')}
+        </span>
+      );
+    };
+
+    return (
+      <div style={styles.toolbarContainer}>
+        <div style={styles.toolbarLeft}>
+          <button style={styles.toolbarButton} onClick={goToCurrent}>Today</button>
+        </div>
+        <div style={styles.toolbarCenter}>
+          <button style={styles.navButton} onClick={goToBack}>‹</button>
+          {label()}
+          <button style={styles.navButton} onClick={goToNext}>›</button>
+        </div>
+        <div style={styles.toolbarRight}>
+          {/* View switcher can be added here if needed, image implies month view only for this widget */}
+        </div>
+      </div>
+    );
+  };
+
 
   if (loading) {
     return <div style={styles.loadingContainer}>Loading leave calendar...</div>;
@@ -82,99 +127,156 @@ const MyLeaveCalendarPage = () => {
   }
 
   return (
-    <div style={styles.pageContainer}>
-      <h1 style={styles.pageTitle}>My Leave Calendar</h1>
-      <div style={styles.calendarWrapper}>
+    <div style={styles.widgetContainer}>
+      {/* <h3 style={styles.sectionTitle}>My Leave Calendar</h3> */}
+      {/* The title "My Calendar" seems to be part of the Toolbar in the image */}
+      <div style={styles.calendarWrapper} id="leaveCalendarWidget">
         <Calendar
           localizer={localizer}
           events={myEventsList}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 600 }} // Adjust height as needed
+          style={{ height: '100%' }} // Make calendar fill wrapper height
           eventPropGetter={eventStyleGetter}
-          views={['month', 'week', 'agenda']} // Add agenda view
-          popup // Enable popup for overflowing events in month view
-          selectable // Allows selecting dates/slots
-          onSelectSlot={(slotInfo) => {
-            // console.log('Selected slot:', slotInfo);
-            // Potentially open leave application form pre-filled with dates
-            // alert(`Selected slot: Start: ${slotInfo.start} End: ${slotInfo.end}`);
-          }}
-          onSelectEvent={(event) => {
-            // console.log('Selected event:', event);
-            // Potentially show event details or link to leave history
-            // alert(`Leave Type: ${event.title}\nStatus: ${event.resource?.status}\nReason: ${event.resource?.reason}`);
+          views={['month']} // Only month view as per image
+          defaultView="month"
+          toolbar={CustomToolbar} // Use custom toolbar
+          date={currentDate}
+          onNavigate={(date) => setCurrentDate(date)}
+          popup // For handling overflow events nicely
+          components={{
+            // month: { header: CustomMonthHeader }, // For further styling day headers
+            // dateCellWrapper: CustomDateCellWrapper, // For styling date cells
           }}
         />
       </div>
       <div style={styles.legendContainer}>
-        <h3 style={styles.legendTitle}>Legend</h3>
         <div style={styles.legendItem}>
-          <span style={{...styles.legendColorBox, backgroundColor: '#5cb85c'}}></span> Approved
+          <span style={{...styles.legendColorBox, borderLeft: '3px solid #4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.1)'}}></span> Approved
         </div>
         <div style={styles.legendItem}>
-          <span style={{...styles.legendColorBox, backgroundColor: '#f0ad4e'}}></span> Pending
+          <span style={{...styles.legendColorBox, borderLeft: '3px solid #FF9800', backgroundColor: 'rgba(255, 152, 0, 0.1)'}}></span> Pending
         </div>
-        {/* Add other statuses if needed */}
       </div>
     </div>
   );
 };
 
-// Basic styles - can be expanded and moved to a CSS file if preferred
+// Styles need significant refinement to match the image.
+// This would typically be done in a dedicated CSS file.
+// For example: ./MyLeaveCalendarPage.css and then import it.
+// #leaveCalendarWidget .rbc-header { ... }
+// #leaveCalendarWidget .rbc-date-cell { ... }
+
 const styles = {
-  pageContainer: {
-    padding: '20px',
-    fontFamily: "'Segoe UI', sans-serif",
-  },
-  pageTitle: {
-    fontSize: '1.8em',
-    color: '#333',
-    fontWeight: '600',
-    marginBottom: '25px',
-  },
-  calendarWrapper: {
-    backgroundColor: '#ffffff',
-    padding: '20px',
+  widgetContainer: {
+    padding: '15px',
+    backgroundColor: '#fff',
     borderRadius: '8px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%', // Important for the calendar to fill space
+  },
+  // sectionTitle: {
+  //   fontSize: '1.1em',
+  //   fontWeight: '600',
+  //   color: '#333',
+  //   marginBottom: '15px',
+  // },
+  calendarWrapper: {
+    flexGrow: 1, // Allows calendar to take available vertical space
+    minHeight: '450px', // Minimum height for the calendar
+    // The following styles would ideally be in a CSS file targeting react-big-calendar classes
+    // For example:
+    // '.rbc-month-view': { border: 'none' },
+    // '.rbc-header': { borderBottom: '1px solid #ddd', padding: '10px 0', textAlign: 'center', fontWeight: '500' },
+    // '.rbc-date-cell': { textAlign: 'right', padding: '5px' },
+    // '.rbc-off-range-bg': { backgroundColor: '#f9f9f9' },
+    // '.rbc-today': { backgroundColor: '#eaf6ff' },
+  },
+  toolbarContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 0px', // Padding adjusted to match image
+    marginBottom: '10px',
+    borderBottom: '1px solid #eee',
+  },
+  toolbarLeft: {
+    flex: 1,
+  },
+  toolbarCenter: {
+    flex: 2,
+    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toolbarRight: {
+    flex: 1,
+    textAlign: 'right',
+  },
+  toolbarLabel: {
+    fontSize: '1.1em', // As per image "My Calendar October 2023"
+    fontWeight: '600',
+    color: '#333',
+    margin: '0 15px',
+  },
+  navButton: {
+    background: 'none',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    padding: '5px 10px',
+    cursor: 'pointer',
+    color: '#555',
+    fontSize: '1em',
+    margin: '0 5px',
+  },
+  toolbarButton: { // For "Today"
+    background: '#f0f0f0',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    padding: '6px 12px',
+    cursor: 'pointer',
+    color: '#333',
+    fontSize: '0.9em',
+    fontWeight: '500',
   },
   loadingContainer: {
     padding: '20px',
-    fontSize: '1.2em',
     textAlign: 'center',
+    color: '#555',
+    height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'
   },
   errorContainer: {
     padding: '20px',
-    fontSize: '1.2em',
     textAlign: 'center',
     color: 'red',
+    height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'
   },
   legendContainer: {
-    marginTop: '20px',
-    padding: '15px',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '8px',
-  },
-  legendTitle: {
-    fontSize: '1.1em',
-    color: '#333',
-    fontWeight: '600',
-    marginBottom: '10px',
+    display: 'flex',
+    justifyContent: 'flex-start', // Align left as per image
+    gap: '20px',
+    marginTop: '15px',
+    paddingTop: '10px',
+    borderTop: '1px solid #eee',
   },
   legendItem: {
     display: 'flex',
     alignItems: 'center',
-    marginBottom: '5px',
-    fontSize: '0.9em',
+    fontSize: '0.85em',
+    color: '#555',
   },
   legendColorBox: {
-    width: '15px',
-    height: '15px',
+    width: '12px', // Smaller legend box
+    height: '12px',
     borderRadius: '3px',
-    marginRight: '8px',
+    marginRight: '6px',
     display: 'inline-block',
   },
 };
 
-export default MyLeaveCalendarPage;
+export default MyLeaveCalendarWidget; // Exporting with new name
