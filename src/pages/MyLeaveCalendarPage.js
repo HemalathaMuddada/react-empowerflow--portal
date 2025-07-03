@@ -95,7 +95,7 @@ const MyLeaveCalendarWidget = () => { // Renamed component for clarity if used a
       const date = moment(toolbar.date);
       return (
         <span style={styles.toolbarLabel}>
-          {date.format('MMMM YYYY')}
+          My Calendar <span style={styles.toolbarDateText}>{date.format('MMMM YYYY')}</span>
         </span>
       );
     };
@@ -103,12 +103,12 @@ const MyLeaveCalendarWidget = () => { // Renamed component for clarity if used a
     return (
       <div style={styles.toolbarContainer}>
         <div style={styles.toolbarLeft}>
-          <button style={styles.toolbarButton} onClick={goToCurrent}>Today</button>
+          <button style={styles.todayButton} onClick={goToCurrent}>Today</button>
         </div>
         <div style={styles.toolbarCenter}>
-          <button style={styles.navButton} onClick={goToBack}>‹</button>
+          <button style={styles.arrowButton} onClick={goToBack}>{'<'}</button>
           {label()}
-          <button style={styles.navButton} onClick={goToNext}>›</button>
+          <button style={styles.arrowButton} onClick={goToNext}>{'>'}</button>
         </div>
         <div style={styles.toolbarRight}>
           {/* View switcher can be added here if needed, image implies month view only for this widget */}
@@ -219,24 +219,27 @@ const styles = {
     textAlign: 'right',
   },
   toolbarLabel: {
-    fontSize: '1.1em', // As per image "My Calendar October 2023"
-    fontWeight: '600',
+    fontSize: '1.2em', // Slightly larger for "My Calendar October 2023"
+    fontWeight: '500', // Medium weight
+    color: '#4A4A4A', // Dark grey, not quite black
+    margin: '0 10px',
+  },
+  toolbarDateText: { // Specific style for the "MMMM YYYY" part if needed
+    fontWeight: '600', // Bolder for the date part
     color: '#333',
-    margin: '0 15px',
   },
-  navButton: {
-    background: 'none',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    padding: '5px 10px',
+  arrowButton: { // For < >
+    background: 'transparent',
+    border: 'none',
     cursor: 'pointer',
-    color: '#555',
-    fontSize: '1em',
-    margin: '0 5px',
+    color: '#555', // Dark grey for arrows
+    fontSize: '1.4em', // Larger for better visibility of arrows
+    padding: '0 10px', // Minimal padding
+    fontWeight: 'bold',
   },
-  toolbarButton: { // For "Today"
-    background: '#f0f0f0',
-    border: '1px solid #ccc',
+  todayButton: { // For "Today"
+    background: '#f0f0f0', // Light grey background
+    border: '1px solid #dcdcdc', // Slightly darker grey border
     borderRadius: '4px',
     padding: '6px 12px',
     cursor: 'pointer',
