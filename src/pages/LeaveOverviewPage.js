@@ -1,7 +1,8 @@
 import React from 'react';
 import LeaveQuotaSummary from '../components/LeaveQuotaSummary';
-import MyLeaveCalendarWidget from './MyLeaveCalendarPage'; // Assuming the adapted calendar is exported as default or MyLeaveCalendarWidget
+import MyLeaveCalendarWidget from './MyLeaveCalendarPage';
 import UpcomingHolidaysWidget from '../components/UpcomingHolidaysWidget';
+import LeaveTransactionsWidget from '../components/LeaveTransactionsWidget'; // <-- Import the new widget
 
 const LeaveOverviewPage = () => {
   return (
@@ -12,13 +13,16 @@ const LeaveOverviewPage = () => {
           <MyLeaveCalendarWidget />
         </div>
 
-        {/* Sidebar/Right column for Quotas and Upcoming Holidays */}
+        {/* Sidebar/Right column for Quotas, Upcoming Holidays, and Transactions */}
         <div style={styles.sidebarSection}>
           <div style={styles.quotaSection}>
             <LeaveQuotaSummary />
           </div>
           <div style={styles.holidaysSection}>
             <UpcomingHolidaysWidget count={3} /> {/* Show 3 upcoming holidays */}
+          </div>
+          <div style={styles.transactionsSection}> {/* <-- New section for transactions */}
+            <LeaveTransactionsWidget />
           </div>
         </div>
       </div>
@@ -71,6 +75,11 @@ const styles = {
     // borderRadius: '8px',
     // boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
   },
+  transactionsSection: { // Style for the container of LeaveTransactionsWidget if needed
+    // backgroundColor: '#fff', // Background is handled by component itself
+    // borderRadius: '8px',
+    // boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+  }
 };
 
 // Replace YOUR_HEADER_HEIGHT with actual header height if known, e.g., '60px'
